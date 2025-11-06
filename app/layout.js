@@ -1,14 +1,14 @@
+import "./globals.css";
+
 export const metadata = {
-  title: "MediBook",
-  description: "Modern Healthcare Appointment SaaS",
+  title: "MediBook | Smart Healthcare SaaS",
+  description: "Modern and responsive medical booking platform built with Next.js and TailwindCSS",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 text-gray-900 flex flex-col min-h-screen font-sans">
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
