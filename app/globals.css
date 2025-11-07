@@ -3,8 +3,8 @@
 /* Reference: https://tailwindcss.com/docs/functions-and-directives#reference-directive */
 /* -------------------------------------------------------------------------- */
 
-/* 👇 Add this line FIRST to help Tailwind resolve @apply correctly */
-@reference "../../node_modules/tailwindcss";
+/* ✅ Correct reference syntax for Next.js 16 + Turbopack */
+@reference "tailwindcss";
 
 /* 👇 Import Tailwind layers */
 @tailwind base;
