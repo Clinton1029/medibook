@@ -1,75 +1,85 @@
+/* -------------------------------------------------------------------------- */
+/* 🌐 MediBook Global Styles                                                  */
+/* Reference: https://tailwindcss.com/docs/functions-and-directives#reference-directive */
+/* -------------------------------------------------------------------------- */
+
+/* 👇 Add this line FIRST to help Tailwind resolve @apply correctly */
+@reference "../../node_modules/tailwindcss";
+
+/* 👇 Import Tailwind layers */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 🌐 MediBook Global Theme */
+/* ✅ Safe custom layer */
+@layer utilities {
+  .container {
+    @apply max-w-7xl mx-auto px-4;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 🌍 Global Theme Variables                                                  */
+/* -------------------------------------------------------------------------- */
 :root {
-  --color-primary: #2563eb; /* Medical Blue */
-  --color-secondary: #0ea5e9; /* Sky Blue Accent */
-  --color-accent: #10b981; /* Health Green */
-  --color-text: #0f172a; /* Dark Navy Text */
-  --color-bg: #ffffff; /* White Background */
-  --color-muted: #64748b; /* Muted Gray Text */
-  --color-border: #e2e8f0; /* Light Gray Border */
+  --color-primary: #2563eb;
+  --color-secondary: #0ea5e9;
+  --color-accent: #10b981;
+  --color-text: #0f172a;
+  --color-bg: #ffffff;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
 }
 
-/* 🌍 Global Reset */
-html,
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', sans-serif;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  scroll-behavior: smooth;
+/* -------------------------------------------------------------------------- */
+/* 🧱 Base Reset & Typography                                                 */
+/* -------------------------------------------------------------------------- */
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  p {
+    color: var(--color-muted);
+    line-height: 1.7;
+  }
 }
 
-/* 🖱️ Smooth scroll for anchor links */
-html {
-  scroll-behavior: smooth;
+/* -------------------------------------------------------------------------- */
+/* 🧩 Components: Buttons, Sections, Navbar                                   */
+/* -------------------------------------------------------------------------- */
+@layer components {
+  .btn-primary {
+    @apply bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors;
+  }
+
+  .btn-outline {
+    @apply border border-blue-600 text-blue-600 px-5 py-2 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition-colors;
+  }
+
+  .section {
+    @apply py-16;
+  }
+
+  .nav-shadow {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
 }
 
-/* 📱 Responsive container utility */
-.container {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-}
-
-/* 🧭 Typography */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-p {
-  color: var(--color-muted);
-  line-height: 1.7;
-}
-
-/* 🧱 Buttons (global style) */
-.btn-primary {
-  @apply bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition;
-}
-
-.btn-outline {
-  @apply border border-blue-600 text-blue-600 px-5 py-2 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition;
-}
-
-/* 🌈 Section padding */
-.section {
-  @apply py-16 sm:py-20;
-}
-
-/* 🎢 Smooth hover animations */
-a {
-  @apply transition-colors duration-200;
-}
-
-/* 🧭 Navbar shadow */
-.nav-shadow {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-
-/* 🔲 Custom scrollbars (modern look) */
+/* -------------------------------------------------------------------------- */
+/* 🎚️ Scrollbar Styling                                                      */
+/* -------------------------------------------------------------------------- */
 ::-webkit-scrollbar {
   width: 8px;
 }
