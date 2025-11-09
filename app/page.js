@@ -1,16 +1,6 @@
 "use client";
 
-/**
- * app/page.jsx
- * MediBook — All-in-one landing + booking + auth UI (single-file)
- * - Uses Framer Motion + lucide-react
- * - Responsive, modern SaaS look
- * - Includes: Navbar, Hero, Services, Doctors, Booking modal, Login/Register modals,
- *   Contact page section, Advanced Footer, Toasts, Back-to-top, Dark mode
- *
- * Install: npm i framer-motion lucide-react
- * Tailwind: ensure tailwind.config.js content covers ./app/**/*.{js,jsx}
- */
+
 
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
