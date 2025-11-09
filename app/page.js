@@ -1,206 +1,227 @@
 "use client";
 
 /**
- * MediBook — Feature-rich Landing Page (Single File)
- * - Modern premium Navbar (glass, blur, animated, dropdowns)
- * - Hero (interactive, animated, floating illustration, search)
- * - Doctors listing with search, filter, sort, and grid
- * - Appointment booking modal (form + simple date/time selection)
- * - Testimonials carousel
- * - Pricing cards
- * - FAQ accordion
- * - Newsletter + contact form
- * - Footer with links and social icons
- * - Dark mode toggle, back-to-top, toast notifications
+ * app/page.jsx
+ * MediBook — All-in-one landing + booking + auth UI (single-file)
+ * - Uses Framer Motion + lucide-react
+ * - Responsive, modern SaaS look
+ * - Includes: Navbar, Hero, Services, Doctors, Booking modal, Login/Register modals,
+ *   Contact page section, Advanced Footer, Toasts, Back-to-top, Dark mode
  *
- * IMPORTANT: Requires Tailwind CSS and lucide-react (or replace icons)
- * Install icons: npm i lucide-react
- *
- * Put in app/page.jsx and run `npm run dev`
+ * Install: npm i framer-motion lucide-react
+ * Tailwind: ensure tailwind.config.js content covers ./app/**/*.{js,jsx}
  */
 
 import { useEffect, useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sun,
-  Moon,
   Menu,
   X,
+  Sun,
+  Moon,
   Search,
-  User,
   Calendar,
   Clock,
+  User,
+  Mail,
+  Phone,
   MapPin,
-  ChevronsUp,
+  ChevronUp,
   Play,
-  ChevronsRight,
   Star,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 
-// ---------- Helper: sample dataset ----------
-const SAMPLE_DOCTORS = [
+/* -------------------------
+   Mock data (doctors, faqs)
+   ------------------------- */
+const MOCK_DOCTORS = [
   {
     id: 1,
     name: "Dr. Grace Njeri",
-    specialty: "Cardiologist",
+    specialty: "Cardiology",
     rating: 4.9,
     reviews: 128,
-    location: "Nairobi Clinic",
+    clinic: "Nairobi Heart Center",
     avatar: "https://randomuser.me/api/portraits/women/65.jpg",
-    price: 45,
+    fee: 55,
+    nextAvailable: "2025-11-12",
     tags: ["heart", "adult"],
-    nextAvailable: "2025-12-01",
   },
   {
     id: 2,
     name: "Dr. Kevin Otieno",
-    specialty: "Dermatologist",
+    specialty: "Dermatology",
     rating: 4.7,
     reviews: 89,
-    location: "Westside Health",
+    clinic: "Westside Skin Clinic",
     avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    price: 35,
+    fee: 40,
+    nextAvailable: "2025-11-17",
     tags: ["skin", "cosmetic"],
-    nextAvailable: "2025-11-12",
   },
   {
     id: 3,
     name: "Dr. Aisha Mwangi",
-    specialty: "Pediatrician",
+    specialty: "Pediatrics",
     rating: 4.95,
     reviews: 210,
-    location: "Family Care Center",
+    clinic: "Family Care Center",
     avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    price: 30,
-    tags: ["kids", "wellness"],
+    fee: 35,
     nextAvailable: "2025-11-10",
+    tags: ["kids"],
   },
   {
     id: 4,
     name: "Dr. Paul Kamau",
-    specialty: "Orthopedic",
+    specialty: "Orthopedics",
     rating: 4.6,
     reviews: 74,
-    location: "Orthocare",
+    clinic: "Orthocare",
     avatar: "https://randomuser.me/api/portraits/men/45.jpg",
-    price: 55,
-    tags: ["bones", "sports"],
+    fee: 65,
     nextAvailable: "2025-11-16",
+    tags: ["bones", "sports"],
   },
-  // add more sample doctors to make the grid feel real...
+  {
+    id: 5,
+    name: "Dr. Maria Wanjiru",
+    specialty: "General Practitioner",
+    rating: 4.8,
+    reviews: 300,
+    clinic: "City Health",
+    avatar: "https://randomuser.me/api/portraits/women/12.jpg",
+    fee: 25,
+    nextAvailable: "2025-11-11",
+    tags: ["general"],
+  },
+  {
+    id: 6,
+    name: "Dr. John Mwangi",
+    specialty: "ENT",
+    rating: 4.5,
+    reviews: 64,
+    clinic: "ENT Specialists",
+    avatar: "https://randomuser.me/api/portraits/men/52.jpg",
+    fee: 45,
+    nextAvailable: "2025-11-20",
+    tags: ["ears", "nose"],
+  },
+  // Add more as needed for realistic grid
 ];
 
-// ---------- Small utilities ----------
-function formatDateISO(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString();
-}
+const FAQS = [
+  {
+    q: "How do I book an appointment on MediBook?",
+    a: "Search for a doctor or clinic, choose an available slot, enter your details and confirm. You’ll receive email and SMS reminders.",
+  },
+  {
+    q: "Can I do telehealth (online) consultations?",
+    a: "Yes — many doctors offer secure video consultations. If available, you’ll see a 'Telehealth' option during booking.",
+  },
+  {
+    q: "How do payments work?",
+    a: "Payments are processed through trusted providers. You can also choose to pay at the clinic if supported.",
+  },
+];
 
-function clamp(v, a, b) {
-  return Math.max(a, Math.min(b, v));
-}
+/* -------------------------
+   Animation variants
+   ------------------------- */
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08 } }),
+};
 
-// ---------- Main Page ----------
-export default function HomePage() {
-  // Global states
+const modalVariant = {
+  hidden: { opacity: 0, scale: 0.98 },
+  visible: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.98 },
+};
+
+/* -------------------------
+   Utility helpers
+   ------------------------- */
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const formatDateReadable = (iso) => {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString();
+  } catch {
+    return iso;
+  }
+};
+
+/* =========================
+   Main Page (default export)
+   ========================= */
+export default function Page() {
+  // Global UI state
   const [dark, setDark] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Search & filter states for doctors
+  // Doctors / search / filters
+  const [doctors, setDoctors] = useState(MOCK_DOCTORS);
   const [query, setQuery] = useState("");
   const [specialty, setSpecialty] = useState("All");
-  const [minRating, setMinRating] = useState(4.5);
-  const [sortBy, setSortBy] = useState("relevance"); // relevance | rating | price
-
-  // doctors dataset and pagination
-  const [doctors, setDoctors] = useState(SAMPLE_DOCTORS);
-  const [page, setPage] = useState(1);
-  const perPage = 6;
+  const [minRating, setMinRating] = useState(0);
+  const [sortBy, setSortBy] = useState("relevance"); // relevance, rating, fee
 
   // booking modal
-  const [bookingOpen, setBookingOpen] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [bookingData, setBookingData] = useState({
-    name: "",
-    email: "",
-    date: "",
-    time: "",
-    notes: "",
-  });
+  const [booking, setBooking] = useState({ open: false, doctor: null });
+  const [bookingForm, setBookingForm] = useState({ name: "", email: "", date: "", time: "", notes: "" });
 
-  // toast notifications
+  // auth modals
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
+
+  // contact form
+  const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
+
+  // toasts
   const [toasts, setToasts] = useState([]);
 
-  // video modal
-  const [videoOpen, setVideoOpen] = useState(false);
-
-  // back-to-top visibility
+  // back to top
   const [showTop, setShowTop] = useState(false);
 
   useEffect(() => {
-    // scroll handlers
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
+
+  useEffect(() => {
     const onScroll = () => {
-      setScrolled(window.scrollY > 16);
-      setShowTop(window.scrollY > 600);
+      setScrolled(window.scrollY > 10);
+      setShowTop(window.scrollY > 700);
     };
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    // dark mode class on html
-    document.documentElement.classList.toggle("dark", dark);
-  }, [dark]);
-
-  // filter & sort pipeline
+  // Filtering pipeline derived
   const filtered = doctors
     .filter((d) => {
-      const matchesQuery =
-        query.trim() === "" ||
-        d.name.toLowerCase().includes(query.toLowerCase()) ||
-        d.specialty.toLowerCase().includes(query.toLowerCase()) ||
-        d.location.toLowerCase().includes(query.toLowerCase());
+      const q = query.trim().toLowerCase();
+      const matchesQ = !q || d.name.toLowerCase().includes(q) || d.specialty.toLowerCase().includes(q) || d.clinic.toLowerCase().includes(q);
       const matchesSpec = specialty === "All" || d.specialty === specialty;
       const matchesRating = d.rating >= minRating;
-      return matchesQuery && matchesSpec && matchesRating;
+      return matchesQ && matchesSpec && matchesRating;
     })
     .sort((a, b) => {
       if (sortBy === "rating") return b.rating - a.rating;
-      if (sortBy === "price") return a.price - b.price;
-      // relevance: keep as is
+      if (sortBy === "fee") return a.fee - b.fee;
+      // relevance -> by reviews
       return b.reviews - a.reviews;
     });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-  const pageDoctors = filtered.slice((page - 1) * perPage, page * perPage);
+  // derived specialties
+  const specialties = ["All", ...Array.from(new Set(MOCK_DOCTORS.map((d) => d.specialty)))];
 
-  // derived specialties for filter dropdown
-  const specialties = ["All", ...Array.from(new Set(SAMPLE_DOCTORS.map((d) => d.specialty)))];
-
-  // booking handlers
-  function openBooking(doctor) {
-    setSelectedDoctor(doctor);
-    setBookingData((bd) => ({ ...bd, date: doctor.nextAvailable || "" }));
-    setBookingOpen(true);
-  }
-  function closeBooking() {
-    setBookingOpen(false);
-    setSelectedDoctor(null);
-    setBookingData({ name: "", email: "", date: "", time: "", notes: "" });
-  }
-
-  function submitBooking(e) {
-    e.preventDefault();
-    // client-side validation
-    if (!bookingData.name || !bookingData.email || !bookingData.date || !bookingData.time) {
-      pushToast("Please fill name, email, date and time", "error");
-      return;
-    }
-    // pretend to submit
-    pushToast(`Appointment requested with ${selectedDoctor.name}`, "success");
-    closeBooking();
-  }
-
+  /* -------------------------
+     Toast helper
+     ------------------------- */
   function pushToast(message, type = "info") {
     const id = Date.now();
     setToasts((t) => [...t, { id, message, type }]);
@@ -209,815 +230,572 @@ export default function HomePage() {
     }, 4500);
   }
 
+  /* -------------------------
+     Booking handlers
+     ------------------------- */
+  function openBookingModal(doctor) {
+    setBooking({ open: true, doctor });
+    setBookingForm((b) => ({ ...b, date: doctor?.nextAvailable || "" }));
+  }
+
+  function closeBookingModal() {
+    setBooking({ open: false, doctor: null });
+    setBookingForm({ name: "", email: "", date: "", time: "", notes: "" });
+  }
+
+  function submitBooking(e) {
+    e.preventDefault();
+    if (!bookingForm.name || !bookingForm.email || !bookingForm.date || !bookingForm.time) {
+      pushToast("Please fill required booking fields", "error");
+      return;
+    }
+    // simulate success
+    pushToast(`Booking requested for ${booking.doctor.name}`, "success");
+    closeBookingModal();
+  }
+
+  /* -------------------------
+     Auth handlers (mock)
+     ------------------------- */
+  function submitLogin(e) {
+    e.preventDefault();
+    pushToast("Logged in (mock)", "success");
+    setLoginOpen(false);
+  }
+  function submitRegister(e) {
+    e.preventDefault();
+    pushToast("Account created (mock)", "success");
+    setRegisterOpen(false);
+  }
+
+  /* -------------------------
+     Contact form (mock)
+     ------------------------- */
+  function submitContact(e) {
+    e.preventDefault();
+    if (!contactForm.name || !contactForm.email || !contactForm.message) {
+      pushToast("Please fill contact form", "error");
+      return;
+    }
+    pushToast("Message sent — we will reply soon", "success");
+    setContactForm({ name: "", email: "", message: "" });
+  }
+
+  /* -------------------------
+     Small UI components inline
+     ------------------------- */
+
+  function IconStar({ className = "" }) {
+    return <Star className={className} size={16} />;
+  }
+
+  /* -------------------------
+     Render
+     ------------------------- */
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <SiteNavbar
-        dark={dark}
-        setDark={setDark}
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        scrolled={scrolled}
-        onCTA={() => {
-          // quick CTA: scroll to doctors
-          document.getElementById("doctors-section")?.scrollIntoView({ behavior: "smooth" });
-        }}
-      />
+      {/* NAVBAR */}
+      <motion.header
+        initial={{ y: -40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.35 }}
+        className={`fixed w-full z-50 top-0 left-0 transition-colors ${scrolled ? "backdrop-blur bg-white/80 dark:bg-gray-900/80 shadow-md" : "bg-transparent"}`}
+      >
+        <div className="container flex items-center justify-between h-16">
+          {/* Brand */}
+          <div className="flex items-center gap-3">
+            <a href="#" className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold">MB</div>
+              <div className="hidden sm:block">
+                <div className="font-bold text-lg">Medi<span className="text-blue-600">Book</span></div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Smart healthcare booking</div>
+              </div>
+            </a>
+          </div>
 
-      <main className="pt-24">
-        <HeroSection
-          onSearch={(q) => {
-            setQuery(q);
-            setPage(1);
-          }}
-          onPlay={() => setVideoOpen(true)}
-        />
+          {/* Links */}
+          <nav className="hidden md:flex items-center gap-6">
+            <a href="#home" className="text-sm font-medium hover:text-blue-600">Home</a>
 
-        <FeaturesSection />
+            <div className="relative group">
+              <button className="text-sm font-medium hover:text-blue-600">Services</button>
+              <div className="absolute left-0 mt-3 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all">
+                <a href="#services" className="block p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">Consultations</a>
+                <a href="#appointments" className="block p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">Appointment Management</a>
+                <a href="#contact" className="block p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">Telehealth</a>
+              </div>
+            </div>
 
-        <div id="doctors-section" className="container my-12">
+            <a href="#doctors" className="text-sm font-medium hover:text-blue-600">Doctors</a>
+            <a href="#contact" className="text-sm font-medium hover:text-blue-600">Contact</a>
+          </nav>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDark((d) => !d)}
+              aria-label="toggle theme"
+              className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+            >
+              {dark ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+
+            <button onClick={() => setRegisterOpen(true)} className="hidden md:inline btn-outline">Sign up</button>
+            <button onClick={() => setLoginOpen(true)} className="hidden md:inline btn-primary">Login</button>
+
+            <button onClick={() => setMobileOpen((s) => !s)} className="md:hidden p-2 rounded-md bg-white dark:bg-gray-800">
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+              <div className="p-4 space-y-2">
+                <a href="#home" className="block">Home</a>
+                <a href="#services" className="block">Services</a>
+                <a href="#doctors" className="block">Doctors</a>
+                <a href="#appointments" className="block">Appointments</a>
+                <a href="#contact" className="block">Contact</a>
+                <div className="pt-2">
+                  <button onClick={() => { setRegisterOpen(true); setMobileOpen(false); }} className="w-full btn-outline mb-2">Sign Up</button>
+                  <button onClick={() => { setLoginOpen(true); setMobileOpen(false); }} className="w-full btn-primary">Login</button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.header>
+
+      {/* MAIN */}
+      <main className="pt-20">
+        {/* HERO */}
+        <section id="home" className="container grid lg:grid-cols-2 gap-8 items-center py-12">
+          <motion.div initial="hidden" animate="visible" variants={fadeInUp} className="space-y-6">
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-50 to-cyan-50 px-3 py-1 rounded-full text-sm text-blue-600">
+              <strong>New</strong> Online consultations & Telehealth
+            </div>
+
+            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
+              Book trusted doctors — <span className="text-blue-600">fast</span>, <span className="text-green-500">secure</span>, and simple.
+            </h1>
+
+            <p className="text-gray-600 dark:text-gray-300 max-w-xl">
+              MediBook connects you with verified healthcare professionals, enables instant booking, reminders, and telehealth — all in one place.
+            </p>
+
+            {/* search bar */}
+            <div className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-md flex gap-3 items-center">
+              <div className="flex items-center gap-2 px-2 border-r pr-3">
+                <Search size={16} className="text-gray-400" />
+                <input placeholder="Search doctors, specialties, clinics..." value={query} onChange={(e) => setQuery(e.target.value)} className="outline-none bg-transparent w-64" />
+              </div>
+
+              <div className="flex gap-2 items-center">
+                <select value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="p-2 bg-white dark:bg-gray-900 rounded-md border">
+                  {specialties.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+
+                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="p-2 bg-white dark:bg-gray-900 rounded-md border">
+                  <option value="relevance">Most reviewed</option>
+                  <option value="rating">Highest rated</option>
+                  <option value="fee">Lowest fee</option>
+                </select>
+
+                <button onClick={() => { /* keep search reactive */ pushToast("Search applied", "info"); }} className="btn-primary">Search</button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-2"><Star className="text-yellow-400" size={16} /> <strong>4.9</strong> avg rating</div>
+              <div className="hidden sm:flex items-center gap-2"><User size={16} /> Trusted by 10k+ patients</div>
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="relative">
+            <div className="rounded-3xl overflow-hidden shadow-2xl">
+              <img src="https://images.unsplash.com/photo-1586773860416-6e7459a9f3d4?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=1a7ef6f9bc3d7f3872b2c1c2f6b4a9ce" alt="doctor" className="w-full h-[420px] object-cover" />
+            </div>
+
+            <div className="absolute left-6 bottom-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md w-72">
+              <div className="flex items-center gap-3">
+                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="doc" className="w-10 h-10 rounded-full" />
+                <div>
+                  <div className="text-sm font-semibold">Dr. Aisha Mwangi</div>
+                  <div className="text-xs text-gray-500">Pediatrician • Available today</div>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between text-sm">
+                <div>Next slot</div>
+                <div className="font-semibold">Today • 3:30 PM</div>
+              </div>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* FEATURES */}
+        <section id="services" className="container py-10">
+          <motion.div initial="hidden" animate="visible" variants={fadeInUp} className="text-center mb-8">
+            <h2 className="text-2xl font-bold">Why people choose MediBook</h2>
+            <p className="text-gray-500 mt-2">Modern features designed around patients and clinics</p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <motion.div initial="hidden" animate="visible" variants={fadeInUp} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
+              <div className="w-14 h-14 rounded-lg bg-blue-50 flex items-center justify-center mb-4"><Calendar size={20} className="text-blue-600" /></div>
+              <h4 className="font-semibold">Intelligent Scheduling</h4>
+              <p className="text-sm text-gray-500 mt-2">Auto slot suggestions, rescheduling, and calendar sync (Google/Outlook).</p>
+            </motion.div>
+
+            <motion.div initial="hidden" animate="visible" variants={fadeInUp} custom={1} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
+              <div className="w-14 h-14 rounded-lg bg-green-50 flex items-center justify-center mb-4"><Clock size={20} className="text-green-600" /></div>
+              <h4 className="font-semibold">Telehealth & Reminders</h4>
+              <p className="text-sm text-gray-500 mt-2">Secure video visits and automated SMS/email reminders to reduce no-shows.</p>
+            </motion.div>
+
+            <motion.div initial="hidden" animate="visible" variants={fadeInUp} custom={2} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
+              <div className="w-14 h-14 rounded-lg bg-purple-50 flex items-center justify-center mb-4"><User size={20} className="text-purple-600" /></div>
+              <h4 className="font-semibold">Verified Doctors</h4>
+              <p className="text-sm text-gray-500 mt-2">All practitioners are credential-checked and reviewed by patients.</p>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* DOCTORS GRID & FILTERS */}
+        <section id="doctors" className="container py-8">
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Left: Filters */}
             <aside className="w-full lg:w-72 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow">
-              <h4 className="font-semibold text-lg mb-3">Find a Doctor</h4>
+              <h4 className="font-semibold mb-3">Filters</h4>
 
-              <label className="text-sm text-gray-500">Search</label>
-              <div className="flex items-center gap-2 mt-2">
-                <Search className="text-gray-400" size={16} />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="w-full bg-transparent outline-none"
-                  placeholder="Search by name, specialty, location..."
-                />
-              </div>
+              <label className="text-sm text-gray-500">Specialty</label>
+              <select value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="w-full mt-2 p-2 rounded-md bg-white dark:bg-gray-900 border">
+                {specialties.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
 
-              <div className="mt-4">
-                <label className="text-sm text-gray-500">Specialty</label>
-                <select
-                  value={specialty}
-                  onChange={(e) => {
-                    setSpecialty(e.target.value);
-                    setPage(1);
-                  }}
-                  className="mt-2 w-full p-2 bg-white dark:bg-gray-900 border rounded-md"
-                >
-                  {specialties.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <label className="text-sm text-gray-500 mt-4">Min rating</label>
+              <input type="range" min="0" max="5" step="0.1" value={minRating} onChange={(e) => setMinRating(parseFloat(e.target.value))} className="w-full mt-2" />
+              <div className="text-sm mt-1">{minRating.toFixed(1)}★ and up</div>
+
+              <label className="text-sm text-gray-500 mt-4">Sort</label>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="w-full mt-2 p-2 rounded-md bg-white dark:bg-gray-900 border">
+                <option value="relevance">Most reviewed</option>
+                <option value="rating">Highest rated</option>
+                <option value="fee">Lowest fee</option>
+              </select>
 
               <div className="mt-4">
-                <label className="text-sm text-gray-500">Minimum rating</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  step="0.1"
-                  value={minRating}
-                  onChange={(e) => setMinRating(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-                <div className="text-sm mt-1">{minRating.toFixed(1)}★ and up</div>
-              </div>
-
-              <div className="mt-4">
-                <label className="text-sm text-gray-500">Sort by</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="mt-2 w-full p-2 bg-white dark:bg-gray-900 border rounded-md"
-                >
-                  <option value="relevance">Most Reviewed</option>
-                  <option value="rating">Highest Rated</option>
-                  <option value="price">Lowest Price</option>
-                </select>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => {
-                    setQuery("");
-                    setSpecialty("All");
-                    setMinRating(4.5);
-                    setSortBy("relevance");
-                    pushToast("Filters reset", "info");
-                  }}
-                  className="w-full btn-outline"
-                >
-                  Reset Filters
-                </button>
+                <button onClick={() => { setQuery(""); setSpecialty("All"); setMinRating(0); setSortBy("relevance"); pushToast("Filters reset", "info"); }} className="w-full btn-outline">Reset</button>
               </div>
             </aside>
 
-            {/* Right: Doctors grid */}
-            <section className="flex-1">
+            <div className="flex-1">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-bold">Available Doctors</h3>
-                <div className="text-sm text-gray-500">
-                  Showing {filtered.length} results — page {page} / {totalPages}
-                </div>
+                <h3 className="text-xl font-bold">Available Doctors</h3>
+                <div className="text-sm text-gray-500">{filtered.length} results</div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pageDoctors.map((doc) => (
-                  <DoctorCard
-                    key={doc.id}
-                    doctor={doc}
-                    onBook={() => openBooking(doc)}
-                    onView={() => pushToast(`Viewing ${doc.name}`, "info")}
-                  />
+                {filtered.map((doc) => (
+                  <motion.article key={doc.id} whileHover={{ y: -6 }} className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow">
+                    <div className="flex items-start gap-3">
+                      <img src={doc.avatar} alt={doc.name} className="w-16 h-16 rounded-full" />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-semibold">{doc.name}</h4>
+                            <div className="text-xs text-gray-500">{doc.specialty} • {doc.clinic}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-500">From</div>
+                            <div className="text-lg font-bold text-blue-600">${doc.fee}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-3">
+                          <div className="flex items-center gap-1 text-yellow-400 font-medium">{doc.rating} <Star size={14} /></div>
+                          <div className="text-xs text-gray-400">({doc.reviews} reviews)</div>
+                        </div>
+
+                        <div className="mt-3 flex gap-2">
+                          <button onClick={() => openBookingModal(doc)} className="btn-primary flex-1">Book</button>
+                          <button onClick={() => pushToast(`Viewing ${doc.name}`, "info")} className="btn-outline">Details</button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.article>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
 
-              {/* Pagination */}
-              <div className="flex items-center justify-between mt-6">
+        {/* APPOINTMENTS SECTION - a quick booking hub */}
+        <section id="appointments" className="container py-10">
+          <div className="grid md:grid-cols-2 gap-6 items-center">
+            <div>
+              <h3 className="text-2xl font-bold">Quick Appointment</h3>
+              <p className="text-gray-600 mt-2">Select a doctor, pick a date and time, confirm — we’ll handle the rest.</p>
+
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <select className="p-3 rounded-md bg-white dark:bg-gray-800 border">
+                  <option>Choose doctor (demo)</option>
+                  {MOCK_DOCTORS.map((d) => <option key={d.id} value={d.id}>{d.name} — {d.specialty}</option>)}
+                </select>
+                <input type="date" className="p-3 rounded-md bg-white dark:bg-gray-800 border" />
+                <select className="p-3 rounded-md bg-white dark:bg-gray-800 border">
+                  <option>09:00</option>
+                  <option>10:30</option>
+                  <option>13:00</option>
+                </select>
+                <button className="btn-primary">Request Appointment</button>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
+              <h4 className="font-semibold">Why schedule with MediBook?</h4>
+              <ul className="mt-3 space-y-2 text-sm text-gray-600">
+                <li>• Real-time availability</li>
+                <li>• Secure patient data</li>
+                <li>• Integrated reminders</li>
+                <li>• Easy rescheduling & cancellation</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="container py-10">
+          <h3 className="text-2xl font-bold mb-4">Frequently Asked Questions</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            {FAQS.map((f, i) => <FAQCard key={i} faq={f} />)}
+          </div>
+        </section>
+
+        {/* CONTACT */}
+        <section id="contact" className="container py-12">
+          <div className="grid md:grid-cols-2 gap-6 items-start">
+            <div>
+              <h3 className="text-2xl font-bold">Get in touch</h3>
+              <p className="text-gray-600 mt-2">Have questions? Our team is here to help.</p>
+
+              <form onSubmit={submitContact} className="mt-6 space-y-3 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
+                <div className="grid md:grid-cols-2 gap-3">
+                  <input className="p-3 rounded-md bg-gray-50 dark:bg-gray-900" placeholder="Full name" value={contactForm.name} onChange={(e) => setContactForm((s) => ({ ...s, name: e.target.value }))} />
+                  <input className="p-3 rounded-md bg-gray-50 dark:bg-gray-900" placeholder="Email" value={contactForm.email} onChange={(e) => setContactForm((s) => ({ ...s, email: e.target.value }))} />
+                </div>
+                <textarea className="w-full p-3 rounded-md bg-gray-50 dark:bg-gray-900" rows="5" placeholder="How can we help?" value={contactForm.message} onChange={(e) => setContactForm((s) => ({ ...s, message: e.target.value }))} />
                 <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setPage((p) => clamp(p - 1, 1, totalPages))}
-                    className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800"
-                    disabled={page <= 1}
-                  >
-                    Prev
-                  </button>
-                  <button
-                    onClick={() => setPage((p) => clamp(p + 1, 1, totalPages))}
-                    className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800"
-                    disabled={page >= totalPages}
-                  >
-                    Next
-                  </button>
+                  <button type="submit" className="btn-primary">Send Message</button>
+                  <button type="button" className="btn-outline" onClick={() => { setContactForm({ name: "", email: "", message: "" }); pushToast("Contact cleared", "info"); }}>Clear</button>
+                </div>
+              </form>
+            </div>
+
+            <div>
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
+                <h4 className="font-semibold">Contact Details</h4>
+                <p className="text-sm text-gray-500 mt-2">support@medibook.com</p>
+                <p className="text-sm text-gray-500">+1 (800) 555-1234</p>
+
+                <div className="mt-4">
+                  <h5 className="font-medium">Office</h5>
+                  <p className="text-sm text-gray-500">123 Health Ave, Nairobi</p>
                 </div>
 
-                <div className="text-sm text-gray-500">
-                  <span className="font-medium">{(page - 1) * perPage + 1}</span> -{" "}
-                  <span className="font-medium">{Math.min(page * perPage, filtered.length)}</span>{" "}
-                  of <span className="font-medium">{filtered.length}</span>
+                <div className="mt-4">
+                  <h5 className="font-medium">Working Hours</h5>
+                  <p className="text-sm text-gray-500">Mon-Fri 8:00 — 17:00</p>
                 </div>
               </div>
-            </section>
+
+              <div className="mt-4">
+                <iframe title="map" src="https://maps.google.com/maps?q=nairobi&t=&z=13&ie=UTF8&iwloc=&output=embed" className="w-full h-56 rounded-2xl border-0" />
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <Testimonials />
+        {/* FOOTER */}
+        <footer className="bg-gray-900 text-gray-300 mt-12">
+          <div className="container py-12 grid md:grid-cols-4 gap-6">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold">MB</div>
+                <div>
+                  <div className="font-bold text-white">MediBook</div>
+                  <div className="text-sm text-gray-400">Smart healthcare booking</div>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 mt-4">Trusted platform for doctors and clinics. Secure, reliable, and easy to use.</p>
 
-        <Pricing />
+              <div className="mt-4">
+                <h6 className="text-sm font-semibold">Subscribe</h6>
+                <div className="mt-2 flex gap-2">
+                  <input placeholder="you@domain.com" className="p-2 rounded-md bg-gray-50 dark:bg-gray-800 flex-1" />
+                  <button className="btn-primary">Subscribe</button>
+                </div>
+              </div>
+            </div>
 
-        <FAQ />
+            <div>
+              <h6 className="text-white font-semibold mb-2">Company</h6>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="hover:text-white">About</a></li>
+                <li><a href="#" className="hover:text-white">Careers</a></li>
+                <li><a href="#" className="hover:text-white">Blog</a></li>
+              </ul>
+            </div>
 
-        <Newsletter />
+            <div>
+              <h6 className="text-white font-semibold mb-2">Support</h6>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="hover:text-white">Help Center</a></li>
+                <li><a href="#" className="hover:text-white">Privacy</a></li>
+                <li><a href="#" className="hover:text-white">Terms</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h6 className="text-white font-semibold mb-2">Contact</h6>
+              <p className="text-sm">support@medibook.com</p>
+              <p className="text-sm">+1 (800) 555-1234</p>
+              <div className="flex gap-2 mt-4">
+                <a className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center">f</a>
+                <a className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center">t</a>
+                <a className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center">in</a>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-800 py-6 text-center text-sm">
+            © {new Date().getFullYear()} MediBook. All rights reserved.
+          </div>
+        </footer>
       </main>
 
-      <SiteFooter />
-
       {/* Booking Modal */}
-      {bookingOpen && selectedDoctor && (
-        <BookingModal
-          doctor={selectedDoctor}
-          bookingData={bookingData}
-          setBookingData={setBookingData}
-          onClose={closeBooking}
-          onSubmit={submitBooking}
-        />
-      )}
+      <AnimatePresence>
+        {booking.open && booking.doctor && (
+          <motion.div key="booking" variants={modalVariant} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+            <div className="bg-white dark:bg-gray-900 w-full max-w-3xl rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold">Book with {booking.doctor.name}</h4>
+                <button onClick={closeBookingModal} className="text-gray-500 hover:text-red-500">✕</button>
+              </div>
 
-      {/* Video Modal */}
-      {videoOpen && (
-        <VideoModal
-          onClose={() => setVideoOpen(false)}
-          videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ"
-        />
-      )}
+              <form onSubmit={submitBooking} className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                <input required placeholder="Full name" value={bookingForm.name} onChange={(e) => setBookingForm((s) => ({ ...s, name: e.target.value }))} className="p-3 rounded-md bg-gray-50 dark:bg-gray-800" />
+                <input required placeholder="Email" type="email" value={bookingForm.email} onChange={(e) => setBookingForm((s) => ({ ...s, email: e.target.value }))} className="p-3 rounded-md bg-gray-50 dark:bg-gray-800" />
+                <input required type="date" value={bookingForm.date} onChange={(e) => setBookingForm((s) => ({ ...s, date: e.target.value }))} className="p-3 rounded-md bg-gray-50 dark:bg-gray-800" />
+                <select required value={bookingForm.time} onChange={(e) => setBookingForm((s) => ({ ...s, time: e.target.value }))} className="p-3 rounded-md bg-gray-50 dark:bg-gray-800">
+                  <option value="">Select time</option>
+                  <option>09:00</option>
+                  <option>10:30</option>
+                  <option>13:00</option>
+                  <option>15:00</option>
+                </select>
+
+                <textarea placeholder="Notes (optional)" value={bookingForm.notes} onChange={(e) => setBookingForm((s) => ({ ...s, notes: e.target.value }))} className="p-3 rounded-md bg-gray-50 dark:bg-gray-800 md:col-span-2" rows={4} />
+
+                <div className="md:col-span-2 flex justify-end gap-3">
+                  <button type="button" onClick={closeBookingModal} className="btn-outline">Cancel</button>
+                  <button type="submit" className="btn-primary">Confirm</button>
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Login Modal */}
+      <AnimatePresence>
+        {loginOpen && (
+          <motion.div key="login" variants={modalVariant} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+            <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold">Login</h4>
+                <button onClick={() => setLoginOpen(false)} className="text-gray-500">✕</button>
+              </div>
+
+              <form onSubmit={submitLogin} className="mt-4 space-y-3">
+                <input required placeholder="Email" type="email" className="w-full p-3 rounded-md bg-gray-50 dark:bg-gray-800" />
+                <input required placeholder="Password" type="password" className="w-full p-3 rounded-md bg-gray-50 dark:bg-gray-800" />
+                <div className="flex items-center justify-between">
+                  <button type="submit" className="btn-primary">Login</button>
+                  <button type="button" onClick={() => { setLoginOpen(false); setRegisterOpen(true); }} className="btn-outline">Create account</button>
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Register Modal */}
+      <AnimatePresence>
+        {registerOpen && (
+          <motion.div key="register" variants={modalVariant} initial="hidden" animate="visible" exit="exit" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+            <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold">Create an account</h4>
+                <button onClick={() => setRegisterOpen(false)} className="text-gray-500">✕</button>
+              </div>
+
+              <form onSubmit={submitRegister} className="mt-4 space-y-3">
+                <input required placeholder="Full name" className="w-full p-3 rounded-md bg-gray-50 dark:bg-gray-800" />
+                <input required placeholder="Email" type="email" className="w-full p-3 rounded-md bg-gray-50 dark:bg-gray-800" />
+                <input required placeholder="Password" type="password" className="w-full p-3 rounded-md bg-gray-50 dark:bg-gray-800" />
+                <div className="flex items-center justify-between">
+                  <button type="submit" className="btn-primary">Create</button>
+                  <button type="button" onClick={() => { setRegisterOpen(false); setLoginOpen(true); }} className="btn-outline">Already have an account?</button>
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Toasts */}
-      <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
+      <div className="fixed right-6 bottom-6 z-50 flex flex-col gap-3">
         {toasts.map((t) => (
-          <div
-            key={t.id}
-            className={`px-4 py-2 rounded-lg shadow-md  ${
-              t.type === "success"
-                ? "bg-green-600 text-white"
-                : t.type === "error"
-                ? "bg-red-600 text-white"
-                : "bg-gray-800 text-white"
-            }`}
-          >
+          <motion.div key={t.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className={`px-4 py-2 rounded-lg shadow-md ${t.type === "success" ? "bg-green-600 text-white" : t.type === "error" ? "bg-red-600 text-white" : "bg-gray-800 text-white"}`}>
             {t.message}
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      {/* Back to top */}
-      {showTop && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed right-6 bottom-6 p-3 rounded-full bg-blue-600 text-white shadow-lg z-40"
-          aria-label="Back to top"
-        >
-          <ChevronsUp size={18} />
-        </button>
-      )}
+      {/* Back-to-top */}
+      <AnimatePresence>
+        {showTop && (
+          <motion.button initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="fixed right-6 bottom-6 p-3 rounded-full bg-blue-600 text-white shadow-lg z-40">
+            <ChevronUp size={18} />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-/* ========================= SiteNavbar ========================= */
-function SiteNavbar({ dark, setDark, menuOpen, setMenuOpen, scrolled, onCTA }) {
-  const [showServices, setShowServices] = useState(false);
-  const [showDoctorsDropdown, setShowDoctorsDropdown] = useState(false);
+/* =========================
+   Small subcomponents below
+   (FAQ card, etc.)
+   ========================= */
 
+function FAQCard({ faq }) {
+  const [open, setOpen] = useState(false);
   return (
-    <header
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? "bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-md" : "bg-transparent"
-      }`}
-    >
-      <div className="container flex items-center justify-between h-16">
-        {/* Brand */}
-        <div className="flex items-center gap-3">
-          <a href="#" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold">
-              MB
-            </div>
-            <div className="hidden sm:block">
-              <span className="font-bold text-lg">Medi<span className="text-blue-600">Book</span></span>
-              <div className="text-xs text-gray-500">Smart healthcare booking</div>
-            </div>
-          </a>
-        </div>
-
-        {/* Nav Links */}
-        <nav className="hidden md:flex items-center gap-6">
-          <a href="#home" className="text-sm font-medium hover:text-blue-600">Home</a>
-
-          <div className="relative">
-            <button
-              onMouseEnter={() => setShowServices(true)}
-              onMouseLeave={() => setShowServices(false)}
-              className="text-sm font-medium hover:text-blue-600 flex items-center gap-1"
-            >
-              Services
-            </button>
-
-            {showServices && (
-              <div
-                onMouseEnter={() => setShowServices(true)}
-                onMouseLeave={() => setShowServices(false)}
-                className="absolute left-0 mt-3 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4"
-              >
-                <div className="grid grid-cols-1 gap-3">
-                  <a href="#" className="p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-3">
-                    <StethoscopeIcon /> Consultations
-                  </a>
-                  <a href="#" className="p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-3">
-                    <CalendarIcon /> Scheduling
-                  </a>
-                  <a href="#" className="p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-3">
-                    <UsersIcon /> Telehealth
-                  </a>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="relative">
-            <button
-              onMouseEnter={() => setShowDoctorsDropdown(true)}
-              onMouseLeave={() => setShowDoctorsDropdown(false)}
-              className="text-sm font-medium hover:text-blue-600 flex items-center gap-1"
-            >
-              Doctors
-            </button>
-
-            {showDoctorsDropdown && (
-              <div
-                onMouseEnter={() => setShowDoctorsDropdown(true)}
-                onMouseLeave={() => setShowDoctorsDropdown(false)}
-                className="absolute left-0 mt-3 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4"
-              >
-                <h6 className="text-xs text-gray-500 mb-2">Popular specialties</h6>
-                <div className="grid grid-cols-2 gap-2">
-                  {["Cardiology", "Dermatology", "Pediatrics", "Orthopedic"].map((s) => (
-                    <a key={s} href="#" className="p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-sm">
-                      {s}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <a href="#about" className="text-sm font-medium hover:text-blue-600">About</a>
-          <a href="#contact" className="text-sm font-medium hover:text-blue-600">Contact</a>
-        </nav>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setDark((d) => !d)}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-            aria-label="Toggle theme"
-          >
-            {dark ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-
-          <button onClick={onCTA} className="hidden md:inline btn-primary">
-            Book Now
-          </button>
-
-          {/* mobile menu */}
-          <button
-            onClick={() => setMenuOpen((m) => !m)}
-            className="md:hidden p-2 rounded-md bg-white dark:bg-gray-800"
-            aria-label="Open menu"
-          >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile expanded menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-          <div className="p-4 space-y-3">
-            <a href="#home" className="block">Home</a>
-            <a href="#services" className="block">Services</a>
-            <a href="#doctors" className="block">Doctors</a>
-            <a href="#about" className="block">About</a>
-            <a href="#contact" className="block">Contact</a>
-            <div className="pt-2">
-              <button className="w-full btn-primary">Book Appointment</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-}
-
-/* ---------- Icons used inside navbar dropdown (inline simple components) */
-function StethoscopeIcon() {
-  return <div className="w-7 h-7 bg-blue-50 rounded p-1 text-blue-600"><Play size={14} /></div>;
-}
-function CalendarIcon() {
-  return <div className="w-7 h-7 bg-green-50 rounded p-1 text-green-600"><Calendar size={14} /></div>;
-}
-function UsersIcon() {
-  return <div className="w-7 h-7 bg-purple-50 rounded p-1 text-purple-600"><User size={14} /></div>;
-}
-
-/* ========================= Hero Section ========================= */
-function HeroSection({ onSearch, onPlay }) {
-  const [localQuery, setLocalQuery] = useState("");
-  const [focus, setFocus] = useState(false);
-
-  return (
-    <section id="home" className="relative overflow-hidden pt-8">
-      <div className="container grid lg:grid-cols-2 gap-10 items-center">
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-50 to-cyan-50 px-3 py-1 rounded-full text-sm text-blue-600">
-            <strong>New</strong>
-            <span>Online consultations available</span>
-          </div>
-
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
-            Book trusted doctors and manage appointments — <span className="text-blue-600">effortlessly</span>
-          </h1>
-
-          <p className="text-gray-600 dark:text-gray-300 max-w-xl">
-            MediBook helps you find top-rated doctors, book in seconds, and keep your health records all in one secure place.
-          </p>
-
-          {/* Search */}
-          <div className={`flex gap-2 items-center bg-white dark:bg-gray-800 p-2 rounded-xl shadow ${focus ? "ring-2 ring-blue-300" : ""}`}>
-            <input
-              value={localQuery}
-              onChange={(e) => setLocalQuery(e.target.value)}
-              onFocus={() => setFocus(true)}
-              onBlur={() => setFocus(false)}
-              placeholder="Search doctors, specialties, clinics..."
-              className="flex-1 p-3 bg-transparent outline-none"
-            />
-            <button
-              onClick={() => onSearch(localQuery)}
-              className="btn-primary flex items-center gap-2"
-              aria-label="Search"
-            >
-              <Search size={16} /> Search
-            </button>
-            <button onClick={onPlay} className="ml-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
-              <Play size={18} />
-            </button>
-          </div>
-
-          <div className="flex gap-4 mt-4 text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <Star size={16} className="text-yellow-400" />{" "}
-              <span><strong>4.9</strong> average rating</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <UsersIcon /> <span>Trusted by thousands</span>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="relative">
-          {/* Layered, floating illustration */}
-          <div className="absolute -right-6 -top-10 w-72 h-72 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-3xl opacity-30 blur-3xl transform rotate-45" />
-          <img
-            src="https://images.unsplash.com/photo-1586773860416-6e7459a9f3d4?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=1a7ef6f9bc3d7f3872b2c1c2f6b4a9ce"
-            alt="Doctor & patient"
-            className="w-full rounded-3xl shadow-2xl transform hover:-translate-y-3 transition"
-          />
-
-          {/* small features overlay */}
-          <div className="absolute left-6 bottom-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg w-64">
-            <div className="flex items-center gap-3">
-              <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="user" className="w-10 h-10 rounded-full" />
-              <div>
-                <div className="text-sm font-medium">Dr. Aisha Mwangi</div>
-                <div className="text-xs text-gray-500">Pediatrician • Available today</div>
-              </div>
-            </div>
-            <div className="mt-3 flex items-center justify-between">
-              <div className="text-sm text-gray-600">Next slot</div>
-              <div className="font-medium">Today • 3:30 PM</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ========================= Features Section ========================= */
-function FeaturesSection() {
-  const features = [
-    {
-      title: "Verified Doctors",
-      desc: "Every doctor is verified and reviewed by patients.",
-      icon: <StethoscopeIcon />,
-    },
-    {
-      title: "Instant Booking",
-      desc: "Choose a time slot and book in seconds with confirmations.",
-      icon: <CalendarIcon />,
-    },
-    {
-      title: "Telehealth",
-      desc: "Secure online video consultations from home.",
-      icon: <UsersIcon />,
-    },
-  ];
-
-  return (
-    <section id="services" className="container mt-12">
-      <div className="grid md:grid-cols-3 gap-6">
-        {features.map((f) => (
-          <div key={f.title} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow hover:shadow-xl transition">
-            <div className="w-14 h-14 rounded-lg bg-blue-50 flex items-center justify-center mb-4">{f.icon}</div>
-            <h4 className="font-semibold">{f.title}</h4>
-            <p className="mt-2 text-sm text-gray-500">{f.desc}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ========================= DoctorCard ========================= */
-function DoctorCard({ doctor, onBook, onView }) {
-  return (
-    <article className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow hover:shadow-2xl transition transform hover:-translate-y-1">
-      <div className="flex items-center gap-4">
-        <img src={doctor.avatar} alt={doctor.name} className="w-16 h-16 rounded-full" />
-        <div className="flex-1">
-          <h5 className="font-semibold">{doctor.name}</h5>
-          <div className="text-sm text-gray-500">{doctor.specialty} • {doctor.location}</div>
-          <div className="flex items-center gap-2 mt-2">
-            <div className="text-sm text-yellow-400">{doctor.rating}★</div>
-            <div className="text-xs text-gray-400">({doctor.reviews} reviews)</div>
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-sm text-gray-500">From</div>
-          <div className="font-bold text-blue-600">${doctor.price}</div>
-        </div>
-      </div>
-
-      <div className="mt-4 flex items-center gap-3">
-        <button onClick={onBook} className="btn-primary flex-1">Book</button>
-        <button onClick={onView} className="btn-outline">View</button>
-      </div>
-    </article>
-  );
-}
-
-/* ========================= Booking Modal ========================= */
-function BookingModal({ doctor, bookingData, setBookingData, onClose, onSubmit }) {
-  // local times for the selected date
-  const times = ["09:00", "10:00", "11:30", "13:00", "15:00"];
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white dark:bg-gray-900 w-full max-w-2xl rounded-2xl p-6 shadow-xl">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Book Appointment — {doctor.name}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-red-500">✕</button>
-        </div>
-
-        <form onSubmit={onSubmit} className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            placeholder="Full name"
-            value={bookingData.name}
-            onChange={(e) => setBookingData((b) => ({ ...b, name: e.target.value }))}
-            className="p-3 rounded-md bg-gray-50 dark:bg-gray-800"
-            required
-          />
-          <input
-            placeholder="Email address"
-            type="email"
-            value={bookingData.email}
-            onChange={(e) => setBookingData((b) => ({ ...b, email: e.target.value }))}
-            className="p-3 rounded-md bg-gray-50 dark:bg-gray-800"
-            required
-          />
-          <div>
-            <label className="text-sm text-gray-500">Date</label>
-            <input
-              type="date"
-              value={bookingData.date}
-              onChange={(e) => setBookingData((b) => ({ ...b, date: e.target.value }))}
-              className="mt-2 p-3 rounded-md bg-gray-50 dark:bg-gray-800 w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm text-gray-500">Time</label>
-            <select
-              value={bookingData.time}
-              onChange={(e) => setBookingData((b) => ({ ...b, time: e.target.value }))}
-              className="mt-2 p-3 rounded-md bg-gray-50 dark:bg-gray-800 w-full"
-              required
-            >
-              <option value="">Select time</option>
-              {times.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <textarea
-            placeholder="Notes (optional)"
-            value={bookingData.notes}
-            onChange={(e) => setBookingData((b) => ({ ...b, notes: e.target.value }))}
-            className="p-3 rounded-md bg-gray-50 dark:bg-gray-800 md:col-span-2"
-          />
-
-          <div className="md:col-span-2 flex justify-end gap-3 mt-2">
-            <button type="button" onClick={onClose} className="btn-outline">Cancel</button>
-            <button type="submit" className="btn-primary">Confirm Booking</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-/* ========================= Testimonials ========================= */
-function Testimonials() {
-  const testimonials = [
-    {
-      name: "John Doe",
-      text: "Fast and reliable — booked a specialist in minutes!",
-      img: "https://randomuser.me/api/portraits/men/45.jpg",
-    },
-    {
-      name: "Sarah K.",
-      text: "The online consultation was seamless and professional.",
-      img: "https://randomuser.me/api/portraits/women/56.jpg",
-    },
-    {
-      name: "Mike R.",
-      text: "Great reminders, easy scheduling and friendly doctors.",
-      img: "https://randomuser.me/api/portraits/men/12.jpg",
-    },
-  ];
-
-  // simple carousel
-  const [index, setIndex] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % testimonials.length), 5000);
-    return () => clearInterval(id);
-  }, []);
-
-  return (
-    <section className="container mt-12">
-      <h3 className="text-2xl font-bold mb-6">What patients say</h3>
-      <div className="relative">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((t, i) => (
-            <div key={t.name} className={`p-6 rounded-2xl shadow ${i === index ? "scale-100" : "opacity-60 scale-95"} transition`}>
-              <div className="flex items-center gap-4 mb-3">
-                <img src={t.img} alt={t.name} className="w-12 h-12 rounded-full" />
-                <div>
-                  <div className="font-semibold">{t.name}</div>
-                  <div className="text-xs text-gray-500">Verified patient</div>
-                </div>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300">{t.text}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2">
-          <button onClick={() => setIndex((i) => (i - 1 + testimonials.length) % testimonials.length)} className="p-2 bg-white dark:bg-gray-800 rounded-md shadow">‹</button>
-          <button onClick={() => setIndex((i) => (i + 1) % testimonials.length)} className="p-2 bg-white dark:bg-gray-800 rounded-md shadow">›</button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ========================= Pricing ========================= */
-function Pricing() {
-  const plans = [
-    { id: "starter", title: "Starter", price: "$0", perks: ["Find doctors", "Book appointments", "Basic reminders"] },
-    { id: "pro", title: "Pro", price: "$19/mo", perks: ["All starter", "Priority booking", "Telehealth sessions"] },
-    { id: "enterprise", title: "Enterprise", price: "Contact", perks: ["Custom integrations", "Bulk scheduling", "Dedicated support"] },
-  ];
-
-  return (
-    <section className="container mt-12">
-      <h3 className="text-2xl font-bold mb-6">Plans for clinics & individuals</h3>
-      <div className="grid md:grid-cols-3 gap-6">
-        {plans.map((p) => (
-          <div key={p.id} className="p-6 rounded-2xl bg-white dark:bg-gray-800 shadow hover:shadow-xl">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-lg">{p.title}</h4>
-              <div className="text-2xl font-bold">{p.price}</div>
-            </div>
-            <ul className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
-              {p.perks.map((perk) => (
-                <li key={perk}>• {perk}</li>
-              ))}
-            </ul>
-            <div className="mt-6">
-              <button className="btn-primary w-full">Choose</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ========================= FAQ ========================= */
-function FAQ() {
-  const faqs = [
-    { q: "How do I book an appointment?", a: "Search doctors, pick a slot, and confirm booking. You’ll get email reminders." },
-    { q: "Can I do telehealth consultations?", a: "Yes — many doctors offer secure video consultations." },
-    { q: "How does payment work?", a: "Payments are processed securely via your chosen payment provider during checkout." },
-  ];
-
-  const [openIndex, setOpenIndex] = useState(null);
-
-  return (
-    <section id="about" className="container mt-12">
-      <h3 className="text-2xl font-bold mb-6">Frequently Asked Questions</h3>
-      <div className="grid md:grid-cols-2 gap-6">
-        {faqs.map((f, i) => (
-          <div key={f.q} className="p-4 rounded-2xl bg-white dark:bg-gray-800 shadow">
-            <button
-              onClick={() => setOpenIndex(openIndex === i ? null : i)}
-              className="w-full text-left flex items-center justify-between"
-            >
-              <div>
-                <div className="font-semibold">{f.q}</div>
-                <div className="text-sm text-gray-500">{openIndex === i ? "Hide" : "Show answer"}</div>
-              </div>
-              <div className={`transform transition ${openIndex === i ? "rotate-180" : ""}`}>
-                <ChevronsRight />
-              </div>
-            </button>
-            {openIndex === i && <div className="mt-3 text-gray-600 dark:text-gray-300">{f.a}</div>}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ========================= Newsletter ========================= */
-function Newsletter() {
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-  return (
-    <section id="contact" className="container mt-12">
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-500 p-8 rounded-2xl text-white">
-        <div className="grid md:grid-cols-2 gap-6 items-center">
-          <div>
-            <h4 className="text-2xl font-bold">Subscribe for updates</h4>
-            <p className="mt-2 text-sm">Get medical tips, appointment reminders, and offers.</p>
-          </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!email.includes("@")) return;
-              setSent(true);
-              setTimeout(() => {
-                setEmail("");
-                setSent(false);
-              }, 2000);
-            }}
-            className="flex gap-2"
-          >
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@domain.com"
-              className="p-3 rounded-md text-gray-900"
-              required
-            />
-            <button type="submit" className="btn-primary">
-              {sent ? "Subscribed" : "Subscribe"}
-            </button>
-          </form>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ========================= Footer ========================= */
-function SiteFooter() {
-  return (
-    <footer className="mt-12 bg-gray-900 text-gray-300">
-      <div className="container py-12 grid md:grid-cols-4 gap-6">
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow">
+      <button onClick={() => setOpen((o) => !o)} className="w-full text-left flex items-center justify-between">
         <div>
-          <h5 className="text-white font-bold text-lg">MediBook</h5>
-          <p className="mt-2 text-sm">Modern healthcare booking for everyone.</p>
+          <div className="font-semibold">{faq.q}</div>
+          <div className="text-sm text-gray-500">{open ? "Hide answer" : "Show answer"}</div>
         </div>
-
-        <div>
-          <h6 className="text-white font-semibold mb-2">Company</h6>
-          <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-white">About</a></li>
-            <li><a href="#" className="hover:text-white">Careers</a></li>
-            <li><a href="#" className="hover:text-white">Blog</a></li>
-          </ul>
+        <div className={`transform transition ${open ? "rotate-180" : ""}`}>
+          <ChevronUp size={18} />
         </div>
-
-        <div>
-          <h6 className="text-white font-semibold mb-2">Support</h6>
-          <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-white">Help Center</a></li>
-            <li><a href="#" className="hover:text-white">Privacy</a></li>
-            <li><a href="#" className="hover:text-white">Terms</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h6 className="text-white font-semibold mb-2">Contact</h6>
-          <p className="text-sm">support@medibook.com</p>
-          <p className="text-sm">+1 (800) 555-1234</p>
-          <div className="flex gap-3 mt-4">
-            <a href="#" className="w-9 h-9 bg-gray-800 rounded-full flex items-center justify-center">f</a>
-            <a href="#" className="w-9 h-9 bg-gray-800 rounded-full flex items-center justify-center">t</a>
-            <a href="#" className="w-9 h-9 bg-gray-800 rounded-full flex items-center justify-center">in</a>
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t border-gray-800 py-6 text-center text-sm">
-        © {new Date().getFullYear()} MediBook. All rights reserved.
-      </div>
-    </footer>
-  );
-}
-
-/* ========================= Video Modal ========================= */
-function VideoModal({ videoUrl, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden w-full max-w-3xl">
-        <div className="flex justify-end p-2">
-          <button onClick={onClose} className="text-gray-500 hover:text-red-500">✕</button>
-        </div>
-        <div className="aspect-video">
-          <iframe
-            src={videoUrl}
-            title="Demo"
-            className="w-full h-full"
-            allowFullScreen
-          />
-        </div>
-      </div>
+      </button>
+      {open && <div className="mt-3 text-gray-600 dark:text-gray-300">{faq.a}</div>}
     </div>
   );
 }
