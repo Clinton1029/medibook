@@ -2,13 +2,27 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, Search, Bell, Stethoscope } from "lucide-react";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  Bell,
+  Stethoscope,
+  User,
+  BookOpen,
+} from "lucide-react";
 
 export default function Navbar() {
+  // Mobile menu toggle
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Dropdown toggles
   const [servicesOpen, setServicesOpen] = useState(false);
+  const [doctorsOpen, setDoctorsOpen] = useState(false);
+  const [faqOpen, setFaqOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
+  // Navigation links
   const navLinks = [
     { name: "Home", href: "#home" },
     {
@@ -18,18 +32,36 @@ export default function Navbar() {
         { name: "Book Appointment", href: "#booking" },
         { name: "Consult Online", href: "#consult" },
         { name: "Pharmacy", href: "#pharmacy" },
+        { name: "Diagnostics", href: "#diagnostics" },
+        { name: "Vaccinations", href: "#vaccinations" },
       ],
     },
-    { name: "Doctors", href: "#doctors" },
+    {
+      name: "Doctors",
+      href: "#doctors",
+      submenu: [
+        { name: "All Doctors", href: "#all-doctors" },
+        { name: "Specialists", href: "#specialists" },
+        { name: "Nearby Clinics", href: "#nearby-clinics" },
+      ],
+    },
     { name: "About", href: "#about" },
-    { name: "FAQ", href: "#faq" },
-    { name: "Contact", href: "#contact" },
-    { name: "App Download", href: "#app" },
+    {
+      name: "FAQ",
+      href: "#faq",
+      submenu: [
+        { name: "Booking FAQ", href: "#booking-faq" },
+        { name: "Payments FAQ", href: "#payments-faq" },
+        { name: "Technical Support", href: "#support" },
+      ],
+    },
   ];
 
+  // Example notifications
   const notifications = [
     { message: "New appointment request", time: "2m ago" },
     { message: "Doctor Dr. Smith confirmed", time: "1h ago" },
+    { message: "Payment received for consultation", time: "3h ago" },
   ];
 
   return (
@@ -47,8 +79,16 @@ export default function Navbar() {
             <div
               key={link.name}
               className="relative group"
-              onMouseEnter={() => link.submenu && setServicesOpen(true)}
-              onMouseLeave={() => link.submenu && setServicesOpen(false)}
+              onMouseEnter={() => {
+                if (link.name === "Services") setServicesOpen(true);
+                if (link.name === "Doctors") setDoctorsOpen(true);
+                if (link.name === "FAQ") setFaqOpen(true);
+              }}
+              onMouseLeave={() => {
+                if (link.name === "Services") setServicesOpen(false);
+                if (link.name === "Doctors") setDoctorsOpen(false);
+                if (link.name === "FAQ") setFaqOpen(false);
+              }}
             >
               <a
                 href={link.href}
@@ -57,10 +97,12 @@ export default function Navbar() {
                 {link.name} {link.submenu && <ChevronDown className="w-4 h-4" />}
               </a>
 
-              {/* Mega Menu */}
+              {/* Dropdown menus */}
               {link.submenu && (
                 <AnimatePresence>
-                  {servicesOpen && (
+                  {(link.name === "Services" && servicesOpen) ||
+                  (link.name === "Doctors" && doctorsOpen) ||
+                  (link.name === "FAQ" && faqOpen) ? (
                     <motion.div
                       initial={{ opacity: 0, y: -20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -77,21 +119,11 @@ export default function Navbar() {
                         </a>
                       ))}
                     </motion.div>
-                  )}
+                  ) : null}
                 </AnimatePresence>
               )}
             </div>
           ))}
-
-          {/* Search Bar */}
-          <div className="ml-4 relative">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="px-3 py-1 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-            <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          </div>
 
           {/* Notifications */}
           <div className="ml-4 relative">
@@ -100,7 +132,7 @@ export default function Navbar() {
               onClick={() => setNotificationsOpen(!notificationsOpen)}
             >
               <Bell className="w-5 h-5 text-gray-600 hover:text-blue-600 transition" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full"></span>
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
             </button>
 
             <AnimatePresence>
@@ -109,7 +141,7 @@ export default function Navbar() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute right-0 mt-2 w-72 bg-white shadow-lg rounded-lg py-2 px-2 z-50"
+                  className="absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-lg py-2 px-2 z-50"
                 >
                   {notifications.map((note, i) => (
                     <div
