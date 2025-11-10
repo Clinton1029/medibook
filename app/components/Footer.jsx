@@ -10,9 +10,6 @@ import {
   Stethoscope,
   User,
   BookOpen,
-  Search,
-  Moon,
-  Sun,
   Settings,
   LogOut,
   UserCircle,
@@ -21,6 +18,8 @@ import {
   Calendar,
   Phone,
   MapPin,
+  Zap,
+  Star,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -29,18 +28,15 @@ export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState(null); // Simulate user state
+  const [user, setUser] = useState(null); // Start with null to show login/register
 
   // Refs for click outside detection
   const dropdownRef = useRef(null);
   const notificationsRef = useRef(null);
   const profileRef = useRef(null);
-  const searchRef = useRef(null);
 
-  // Navigation data
+  // Compact navigation data - Changed Dashboard to Home
   const navLinks = [
     { name: "Home", href: "#home", icon: User },
     {
@@ -48,68 +44,59 @@ export default function Navbar() {
       href: "#services",
       icon: Stethoscope,
       submenu: [
-        { name: "Book Appointment", href: "#booking", icon: Calendar },
-        { name: "Consult Online", href: "#consult", icon: Phone },
+        { name: "Book Appointment", href: "#booking", icon: Calendar, premium: true },
+        { name: "Virtual Consult", href: "#consult", icon: Phone, premium: true },
         { name: "Pharmacy", href: "#pharmacy", icon: Heart },
         { name: "Diagnostics", href: "#diagnostics", icon: Shield },
-        { name: "Vaccinations", href: "#vaccinations", icon: Shield },
+        { name: "Emergency Care", href: "#emergency", icon: Zap, emergency: true },
       ],
     },
     {
-      name: "Doctors",
+      name: "Specialists",
       href: "#doctors",
       icon: UserCircle,
       submenu: [
         { name: "All Doctors", href: "#all-doctors", icon: User },
-        { name: "Specialists", href: "#specialists", icon: Shield },
+        { name: "Cardiologists", href: "#cardiologists", icon: Heart },
+        { name: "Neurologists", href: "#neurologists", icon: Shield },
         { name: "Nearby Clinics", href: "#nearby-clinics", icon: MapPin },
       ],
     },
     { name: "About", href: "#about", icon: BookOpen },
     {
-      name: "FAQ",
-      href: "#faq",
-      icon: BookOpen,
+      name: "Support",
+      href: "#support",
+      icon: Shield,
       submenu: [
-        { name: "Booking FAQ", href: "#booking-faq", icon: Calendar },
-        { name: "Payments FAQ", href: "#payments-faq", icon: Shield },
-        { name: "Technical Support", href: "#support", icon: Phone },
+        { name: "Help Center", href: "#help", icon: Shield },
+        { name: "Contact", href: "#contact", icon: Phone },
+        { name: "Emergency", href: "#emergency-line", icon: Zap, emergency: true },
       ],
     },
   ];
 
-  // Enhanced notifications with types and actions
+  // Notifications
   const [notifications, setNotifications] = useState([
     { 
       id: 1, 
-      message: "New appointment request from John Doe", 
+      message: "Your consultation with Dr. Smith is confirmed", 
       time: "2m ago", 
-      type: "appointment",
+      type: "premium",
       read: false,
-      action: "Review"
     },
     { 
       id: 2, 
-      message: "Dr. Smith confirmed your appointment", 
+      message: "Health checkup results are ready", 
       time: "1h ago", 
-      type: "confirmation",
+      type: "results",
       read: false,
-      action: "View"
-    },
-    { 
-      id: 3, 
-      message: "Payment received for consultation", 
-      time: "3h ago", 
-      type: "payment",
-      read: true,
-      action: "Receipt"
     },
   ]);
 
   // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 5);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -127,23 +114,11 @@ export default function Navbar() {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setProfileOpen(false);
       }
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setSearchOpen(false);
-      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // Dark mode effect
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   // Notification handlers
   const markAsRead = (id) => {
@@ -152,45 +127,47 @@ export default function Navbar() {
     ));
   };
 
-  const clearAllNotifications = () => {
-    setNotifications([]);
+  // Auth handlers
+  const handleLogin = () => {
+    setUser({
+      name: "Sarah Johnson",
+      email: "sarah@medicare.com",
+      role: "Premium Member"
+    });
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setProfileOpen(false);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // Dropdown handlers
-  const handleDropdownToggle = (name) => {
-    setOpenDropdown(openDropdown === name ? null : name);
-  };
-
   return (
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
       scrolled 
-        ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-lg border-b border-gray-200/50 dark:border-gray-700/50" 
-        : "bg-white dark:bg-gray-900 backdrop-blur-md shadow-sm"
+        ? "bg-blue-900/95 backdrop-blur-xl shadow-2xl border-b border-blue-700/50" 
+        : "bg-blue-900 backdrop-blur-lg shadow-lg"
     }`}>
-      <div className="container mx-auto flex justify-between items-center py-3 px-4 md:px-6">
-        {/* Logo */}
+      {/* Ultra Compact Container */}
+      <div className="mx-auto flex justify-between items-center py-2 px-3 sm:px-4 md:px-6">
+        {/* Compact Logo */}
         <motion.div 
-          className="flex items-center gap-3 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer group"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <div className="relative">
-            <Stethoscope className="text-blue-600 dark:text-blue-400 w-7 h-7" />
-            <motion.div 
-              className="absolute inset-0 bg-blue-100 dark:bg-blue-900 rounded-full -z-10"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+            <Stethoscope className="text-white w-3 h-3 sm:w-4 sm:h-4" />
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-            MediBook+
-          </h1>
+          <div className="flex flex-col">
+            <h1 className="text-base sm:text-lg font-bold text-white">MediCare</h1>
+            <p className="text-[10px] sm:text-xs text-blue-300 font-medium">Pro</p>
+          </div>
         </motion.div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-1">
+        {/* Desktop Navigation - Ultra Compact */}
+        <nav className="hidden lg:flex items-center gap-0">
           {navLinks.map((link) => (
             <div
               key={link.name}
@@ -201,37 +178,43 @@ export default function Navbar() {
             >
               <motion.a
                 href={link.href}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-800 transition-all duration-200 font-medium group"
+                className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-blue-100 hover:text-white hover:bg-blue-800 transition-all duration-200 font-medium group"
                 whileHover={{ y: -1 }}
               >
-                <link.icon className="w-4 h-4" />
-                {link.name}
+                <link.icon className="w-3 h-3" />
+                <span className="text-xs sm:text-sm">{link.name}</span>
                 {link.submenu && (
-                  <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
+                  <ChevronDown className="w-3 h-3 transition-transform group-hover:rotate-180" />
                 )}
               </motion.a>
 
-              {/* Enhanced Dropdown Menu */}
+              {/* Compact Dropdown Menu */}
               <AnimatePresence>
                 {link.submenu && openDropdown === link.name && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    className="absolute top-full left-0 mt-1 w-48 sm:w-56 bg-blue-800 shadow-2xl rounded-xl border border-blue-700 overflow-hidden z-50"
                   >
-                    <div className="p-2">
+                    <div className="p-1">
                       {link.submenu.map((item) => (
                         <motion.a
                           key={item.name}
                           href={item.href}
-                          className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 transition-all duration-200 group"
-                          whileHover={{ x: 4 }}
+                          className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 group"
+                          whileHover={{ x: 2 }}
                         >
-                          <item.icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                          <span className="text-gray-700 dark:text-gray-300 font-medium">
+                          <item.icon className="w-3 h-3 text-blue-300" />
+                          <span className="text-xs sm:text-sm text-white font-medium">
                             {item.name}
                           </span>
+                          {item.premium && (
+                            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 ml-auto" />
+                          )}
+                          {item.emergency && (
+                            <Zap className="w-3 h-3 text-red-400 ml-auto" />
+                          )}
                         </motion.a>
                       ))}
                     </div>
@@ -242,72 +225,44 @@ export default function Navbar() {
           ))}
         </nav>
 
-        {/* Right Side Actions */}
-        <div className="flex items-center gap-3">
-          {/* Search Button */}
-          <motion.button
-            ref={searchRef}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setSearchOpen(!searchOpen)}
-          >
-            <Search className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          </motion.button>
-
-          {/* Search Panel */}
-          <AnimatePresence>
-            {searchOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute top-full right-0 mt-2 w-96 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700 p-4 z-50"
+        {/* Right Side Actions - Ultra Compact */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Desktop Auth Buttons - Show when user is not logged in */}
+          {!user && (
+            <div className="hidden md:flex items-center gap-2">
+              <motion.button
+                onClick={handleLogin}
+                className="px-2 sm:px-3 py-1 sm:py-2 text-blue-200 hover:text-white text-xs sm:text-sm font-medium hover:bg-blue-800 rounded-lg transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search doctors, services, medications..."
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-white"
-                    autoFocus
-                  />
-                </div>
-                <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-                  Quick search: Doctors, Appointments, Pharmacy
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                Sign In
+              </motion.button>
+              <motion.button
+                onClick={handleLogin}
+                className="px-2 sm:px-3 py-1 sm:py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium hover:bg-blue-500 rounded-lg transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Register
+              </motion.button>
+            </div>
+          )}
 
-          {/* Dark Mode Toggle */}
-          <motion.button
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setDarkMode(!darkMode)}
-          >
-            {darkMode ? (
-              <Sun className="w-5 h-5 text-yellow-500" />
-            ) : (
-              <Moon className="w-5 h-5 text-gray-600" />
-            )}
-          </motion.button>
-
-          {/* Notifications */}
+          {/* Compact Notifications */}
           <div ref={notificationsRef} className="relative">
             <motion.button
-              className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="relative p-1 sm:p-2 rounded-lg hover:bg-blue-800 transition-colors group"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setNotificationsOpen(!notificationsOpen)}
             >
-              <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <Bell className="w-4 h-4 text-blue-200 group-hover:text-white transition-colors" />
               {unreadCount > 0 && (
                 <motion.span 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium"
+                  className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-red-500 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center font-bold"
                 >
                   {unreadCount}
                 </motion.span>
@@ -317,62 +272,56 @@ export default function Navbar() {
             <AnimatePresence>
               {notificationsOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  className="absolute right-0 mt-1 w-72 bg-blue-800 shadow-2xl rounded-xl border border-blue-700 overflow-hidden z-50"
                 >
-                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="p-3 border-b border-blue-700">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                      {notifications.length > 0 && (
-                        <button
-                          onClick={clearAllNotifications}
-                          className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          Clear all
-                        </button>
+                      <h3 className="font-semibold text-white text-sm">Notifications</h3>
+                      {unreadCount > 0 && (
+                        <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded-full font-semibold">
+                          {unreadCount} new
+                        </span>
                       )}
                     </div>
                   </div>
                   
-                  <div className="max-h-96 overflow-y-auto">
+                  <div className="max-h-64 overflow-y-auto">
                     {notifications.length > 0 ? (
                       notifications.map((notification) => (
                         <motion.div
                           key={notification.id}
-                          className={`p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors ${
-                            !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                          className={`p-3 border-b border-blue-700/50 hover:bg-blue-700/50 transition-all duration-200 ${
+                            !notification.read ? 'bg-blue-700/30' : ''
                           }`}
-                          whileHover={{ backgroundColor: "rgba(59, 130, 246, 0.05)" }}
+                          whileHover={{ x: 2 }}
                         >
-                          <div className="flex justify-between items-start">
+                          <div className="flex justify-between items-start gap-2">
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              <p className="text-xs font-medium text-white mb-1">
                                 {notification.message}
                               </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              <p className="text-xs text-blue-300">
                                 {notification.time}
                               </p>
                             </div>
                             {!notification.read && (
                               <button
                                 onClick={() => markAsRead(notification.id)}
-                                className="ml-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500 transition-colors"
                               >
-                                Mark read
+                                Read
                               </button>
                             )}
                           </div>
-                          <button className="mt-2 text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition-colors">
-                            {notification.action}
-                          </button>
                         </motion.div>
                       ))
                     ) : (
-                      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                        <Bell className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p>No notifications</p>
+                      <div className="p-4 text-center text-blue-300">
+                        <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm font-medium">No notifications</p>
                       </div>
                     )}
                   </div>
@@ -381,101 +330,93 @@ export default function Navbar() {
             </AnimatePresence>
           </div>
 
-          {/* User Profile */}
-          <div ref={profileRef} className="relative">
-            <motion.button
-              className="flex items-center gap-2 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setProfileOpen(!profileOpen)}
-            >
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-white" />
-              </div>
-            </motion.button>
+          {/* Compact User Profile - Show when user is logged in */}
+          {user ? (
+            <div ref={profileRef} className="relative">
+              <motion.button
+                className="flex items-center gap-1 sm:gap-2 p-1 rounded-lg hover:bg-blue-800 transition-colors group"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setProfileOpen(!profileOpen)}
+              >
+                <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center shadow">
+                  <User className="w-3 h-3 text-white" />
+                </div>
+                <ChevronDown className="w-3 h-3 text-blue-300 transition-transform group-hover:rotate-180" />
+              </motion.button>
 
-            <AnimatePresence>
-              {profileOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
-                >
-                  {user ? (
-                    <>
-                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                        <p className="font-semibold text-gray-900 dark:text-white">John Doe</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">john@example.com</p>
-                      </div>
-                      <div className="p-2">
-                        {[
-                          { name: "Profile", icon: UserCircle },
-                          { name: "Appointments", icon: Calendar },
-                          { name: "Medical Records", icon: Shield },
-                          { name: "Settings", icon: Settings },
-                        ].map((item) => (
-                          <button
-                            key={item.name}
-                            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
-                          >
-                            <item.icon className="w-4 h-4" />
-                            {item.name}
-                          </button>
-                        ))}
-                        <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
-                          <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400">
-                            <LogOut className="w-4 h-4" />
-                            Sign Out
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="p-4">
-                      <p className="text-gray-700 dark:text-gray-300 mb-4 text-center">Welcome to MediBook+</p>
-                      <div className="flex flex-col gap-2">
-                        <motion.a
-                          href="#login"
-                          className="px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors text-center"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
+              <AnimatePresence>
+                {profileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    className="absolute right-0 mt-1 w-48 sm:w-56 bg-blue-800 shadow-2xl rounded-xl border border-blue-700 overflow-hidden z-50"
+                  >
+                    <div className="p-3 border-b border-blue-700 bg-blue-700/50">
+                      <p className="font-semibold text-white text-sm">{user.name}</p>
+                      <p className="text-xs text-blue-300">{user.role}</p>
+                    </div>
+                    <div className="p-1">
+                      {[
+                        { name: "Profile", icon: UserCircle },
+                        { name: "Appointments", icon: Calendar },
+                        { name: "Medical Records", icon: Shield },
+                        { name: "Settings", icon: Settings },
+                      ].map((item) => (
+                        <button
+                          key={item.name}
+                          className="flex items-center gap-2 w-full px-2 sm:px-3 py-1 sm:py-2 rounded-lg hover:bg-blue-700 transition-colors text-blue-100 text-xs sm:text-sm font-medium"
                         >
-                          Login
-                        </motion.a>
-                        <motion.a
-                          href="#register"
-                          className="px-4 py-3 border border-blue-600 text-blue-600 dark:text-blue-400 rounded-xl font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-center"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
+                          <item.icon className="w-3 h-3" />
+                          {item.name}
+                        </button>
+                      ))}
+                      <div className="border-t border-blue-700 mt-1 pt-1">
+                        <button 
+                          onClick={handleLogout}
+                          className="flex items-center gap-2 w-full px-2 sm:px-3 py-1 sm:py-2 rounded-lg hover:bg-red-600/20 transition-colors text-red-400 text-xs sm:text-sm font-medium"
                         >
-                          Register
-                        </motion.a>
+                          <LogOut className="w-3 h-3" />
+                          Sign Out
+                        </button>
                       </div>
                     </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            // Mobile Auth Buttons - Show when user is not logged in (mobile only)
+            <div className="md:hidden flex items-center gap-1">
+              <motion.button
+                onClick={handleLogin}
+                className="px-2 py-1 text-blue-200 hover:text-white text-xs font-medium hover:bg-blue-800 rounded transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Sign In
+              </motion.button>
+            </div>
+          )}
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Ultra Compact */}
           <motion.button
-            className="lg:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="lg:hidden p-1 sm:p-2 rounded-lg hover:bg-blue-800 transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             {mobileOpen ? (
-              <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              <X className="w-4 h-4 text-blue-200" />
             ) : (
-              <Menu className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              <Menu className="w-4 h-4 text-blue-200" />
             )}
           </motion.button>
         </div>
       </div>
 
-      {/* Enhanced Mobile Menu */}
+      {/* Compact Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -484,7 +425,7 @@ export default function Navbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
               onClick={() => setMobileOpen(false)}
             />
             
@@ -494,48 +435,58 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 h-full w-80 max-w-full bg-white dark:bg-gray-900 shadow-2xl z-50 lg:hidden overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 max-w-full bg-blue-900 shadow-2xl z-50 lg:hidden overflow-y-auto"
             >
-              <div className="p-6">
+              <div className="p-4 h-full flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-3">
-                    <Stethoscope className="text-blue-600 dark:text-blue-400 w-6 h-6" />
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">MediBook+</h2>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">
+                      <Stethoscope className="text-white w-4 h-4" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-white">MediCare</h2>
+                      <p className="text-xs text-blue-300">Pro</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => setMobileOpen(false)}
-                    className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="p-2 rounded-lg hover:bg-blue-800 transition-colors"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4 text-blue-200" />
                   </button>
                 </div>
 
-                {/* Mobile Search */}
-                <div className="relative mb-6">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
-                  />
-                </div>
+                {/* User Info Mobile - Show when logged in */}
+                {user && (
+                  <div className="bg-blue-800 rounded-lg p-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">
+                        <User className="text-white w-3 h-3" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-white text-sm">{user.name}</p>
+                        <p className="text-xs text-blue-300">{user.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Mobile Navigation */}
-                <nav className="space-y-2">
+                <nav className="flex-1 space-y-1">
                   {navLinks.map((link) => (
                     <div key={link.name} className="relative">
                       <button
-                        onClick={() => handleDropdownToggle(link.name)}
-                        className="flex items-center justify-between w-full px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300 font-medium"
+                        onClick={() => setOpenDropdown(openDropdown === link.name ? null : link.name)}
+                        className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-blue-800 transition-all duration-200 text-blue-100 font-medium text-sm"
                       >
-                        <div className="flex items-center gap-3">
-                          <link.icon className="w-4 h-4" />
+                        <div className="flex items-center gap-2">
+                          <link.icon className="w-3 h-3" />
                           {link.name}
                         </div>
                         {link.submenu && (
                           <ChevronDown 
-                            className={`w-4 h-4 transition-transform ${
+                            className={`w-3 h-3 transition-transform ${
                               openDropdown === link.name ? "rotate-180" : ""
                             }`} 
                           />
@@ -551,16 +502,19 @@ export default function Navbar() {
                             exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden"
                           >
-                            <div className="ml-8 pl-4 border-l-2 border-gray-200 dark:border-gray-700 space-y-1 my-2">
+                            <div className="ml-4 pl-3 border-l-2 border-blue-700 space-y-1 my-1">
                               {link.submenu.map((item) => (
                                 <a
                                   key={item.name}
                                   href={item.href}
-                                  className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+                                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-800 transition-all duration-200 text-blue-300 text-sm"
                                   onClick={() => setMobileOpen(false)}
                                 >
-                                  <item.icon className="w-4 h-4" />
+                                  <item.icon className="w-3 h-3" />
                                   {item.name}
+                                  {item.premium && (
+                                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 ml-auto" />
+                                  )}
                                 </a>
                               ))}
                             </div>
@@ -571,38 +525,44 @@ export default function Navbar() {
                   ))}
                 </nav>
 
-                {/* Mobile Actions */}
-                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Dark Mode</span>
-                    <button
-                      onClick={() => setDarkMode(!darkMode)}
-                      className="relative w-12 h-6 bg-gray-300 dark:bg-gray-600 rounded-full transition-colors"
-                    >
-                      <motion.div
-                        className="w-5 h-5 bg-white rounded-full shadow-lg absolute top-0.5"
-                        animate={{ left: darkMode ? "1.5rem" : "0.125rem" }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
-                    </button>
-                  </div>
-                  
-                  {!user && (
-                    <div className="flex gap-3">
-                      <a
-                        href="#login"
-                        className="flex-1 text-center px-4 py-3 border border-blue-600 text-blue-600 dark:text-blue-400 rounded-xl font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                        onClick={() => setMobileOpen(false)}
+                {/* Mobile Auth Section */}
+                <div className="mt-4 pt-4 border-t border-blue-700">
+                  {!user ? (
+                    <div className="flex flex-col gap-2">
+                      <motion.button
+                        onClick={() => {
+                          handleLogin();
+                          setMobileOpen(false);
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium text-center text-sm hover:bg-blue-500 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        Login
-                      </a>
-                      <a
-                        href="#register"
-                        className="flex-1 text-center px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
-                        onClick={() => setMobileOpen(false)}
+                        Sign In
+                      </motion.button>
+                      <motion.button
+                        onClick={() => {
+                          handleLogin();
+                          setMobileOpen(false);
+                        }}
+                        className="px-4 py-2 border border-blue-500 text-blue-300 rounded-lg font-medium text-center text-sm hover:bg-blue-800 transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        Register
-                      </a>
+                        Create Account
+                      </motion.button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full px-4 py-2 bg-red-600/20 text-red-400 rounded-lg font-medium text-center text-sm hover:bg-red-600/30 transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                      <div className="text-center text-blue-400 text-xs">
+                        Premium Member • MediCare Pro
+                      </div>
                     </div>
                   )}
                 </div>
