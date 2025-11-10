@@ -10,14 +10,17 @@ import {
   Stethoscope,
   User,
   BookOpen,
-  Calendar,
-  Phone,
-  Heart,
-  Shield,
-  MapPin,
-  UserCircle,
+  Search,
+  Moon,
+  Sun,
   Settings,
   LogOut,
+  UserCircle,
+  Shield,
+  Heart,
+  Calendar,
+  Phone,
+  MapPin,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -26,6 +29,8 @@ export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState(null); // Simulate user state
 
@@ -33,8 +38,9 @@ export default function Navbar() {
   const dropdownRef = useRef(null);
   const notificationsRef = useRef(null);
   const profileRef = useRef(null);
+  const searchRef = useRef(null);
 
-  // Premium navigation data
+  // Navigation data
   const navLinks = [
     { name: "Home", href: "#home", icon: User },
     {
@@ -42,66 +48,68 @@ export default function Navbar() {
       href: "#services",
       icon: Stethoscope,
       submenu: [
-        { name: "Book Appointment", href: "#booking", icon: Calendar, premium: true },
-        { name: "Virtual Consultation", href: "#consult", icon: Phone, premium: true },
-        { name: "Pharmacy Delivery", href: "#pharmacy", icon: Heart },
-        { name: "Health Diagnostics", href: "#diagnostics", icon: Shield },
-        { name: "Vaccination Center", href: "#vaccinations", icon: Shield },
+        { name: "Book Appointment", href: "#booking", icon: Calendar },
+        { name: "Consult Online", href: "#consult", icon: Phone },
+        { name: "Pharmacy", href: "#pharmacy", icon: Heart },
+        { name: "Diagnostics", href: "#diagnostics", icon: Shield },
+        { name: "Vaccinations", href: "#vaccinations", icon: Shield },
       ],
     },
     {
-      name: "Specialists",
+      name: "Doctors",
       href: "#doctors",
       icon: UserCircle,
       submenu: [
-        { name: "All Specialists", href: "#all-doctors", icon: User },
-        { name: "Cardiologists", href: "#cardiologists", icon: Heart },
-        { name: "Neurologists", href: "#neurologists", icon: Shield },
-        { name: "Find Nearby Clinics", href: "#nearby-clinics", icon: MapPin },
+        { name: "All Doctors", href: "#all-doctors", icon: User },
+        { name: "Specialists", href: "#specialists", icon: Shield },
+        { name: "Nearby Clinics", href: "#nearby-clinics", icon: MapPin },
       ],
     },
     { name: "About", href: "#about", icon: BookOpen },
     {
-      name: "Support",
+      name: "FAQ",
       href: "#faq",
-      icon: Shield,
+      icon: BookOpen,
       submenu: [
-        { name: "Help Center", href: "#help", icon: Shield },
-        { name: "Contact Support", href: "#contact", icon: Phone },
-        { name: "Emergency", href: "#emergency", icon: Heart, emergency: true },
+        { name: "Booking FAQ", href: "#booking-faq", icon: Calendar },
+        { name: "Payments FAQ", href: "#payments-faq", icon: Shield },
+        { name: "Technical Support", href: "#support", icon: Phone },
       ],
     },
   ];
 
-  // Premium notifications
+  // Enhanced notifications with types and actions
   const [notifications, setNotifications] = useState([
     { 
       id: 1, 
-      message: "Your premium consultation with Dr. Smith is confirmed", 
+      message: "New appointment request from John Doe", 
       time: "2m ago", 
-      type: "premium",
+      type: "appointment",
       read: false,
+      action: "Review"
     },
     { 
       id: 2, 
-      message: "Health checkup results are ready", 
+      message: "Dr. Smith confirmed your appointment", 
       time: "1h ago", 
-      type: "results",
+      type: "confirmation",
       read: false,
+      action: "View"
     },
     { 
       id: 3, 
-      message: "Welcome to MediCare Premium", 
-      time: "1d ago", 
-      type: "welcome",
+      message: "Payment received for consultation", 
+      time: "3h ago", 
+      type: "payment",
       read: true,
+      action: "Receipt"
     },
   ]);
 
-  // Scroll effect for premium appearance
+  // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      setScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -119,11 +127,23 @@ export default function Navbar() {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setProfileOpen(false);
       }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setSearchOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Dark mode effect
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   // Notification handlers
   const markAsRead = (id) => {
@@ -132,37 +152,41 @@ export default function Navbar() {
     ));
   };
 
+  const clearAllNotifications = () => {
+    setNotifications([]);
+  };
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  // Dropdown handlers
+  const handleDropdownToggle = (name) => {
+    setOpenDropdown(openDropdown === name ? null : name);
+  };
+
   return (
-    <header className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+    <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
       scrolled 
-        ? "bg-white/95 backdrop-blur-xl shadow-2xl border-b border-gray-100" 
-        : "bg-white/90 backdrop-blur-lg shadow-lg"
+        ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-lg border-b border-gray-200/50 dark:border-gray-700/50" 
+        : "bg-white dark:bg-gray-900 backdrop-blur-md shadow-sm"
     }`}>
-      <div className="container mx-auto flex justify-between items-center py-4 px-6">
-        {/* Premium Logo */}
+      <div className="container mx-auto flex justify-between items-center py-3 px-4 md:px-6">
+        {/* Logo */}
         <motion.div 
-          className="flex items-center gap-3 cursor-pointer group"
+          className="flex items-center gap-3 cursor-pointer"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
           <div className="relative">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Stethoscope className="text-white w-5 h-5" />
-            </div>
+            <Stethoscope className="text-blue-600 dark:text-blue-400 w-7 h-7" />
             <motion.div 
-              className="absolute -inset-1 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-30 transition-opacity"
-              animate={{ rotate: [0, 5, 0] }}
-              transition={{ duration: 5, repeat: Infinity }}
+              className="absolute inset-0 bg-blue-100 dark:bg-blue-900 rounded-full -z-10"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
             />
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              MediCare+
-            </h1>
-            <p className="text-xs text-gray-500 font-medium">Premium Healthcare</p>
-          </div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            MediBook+
+          </h1>
         </motion.div>
 
         {/* Desktop Navigation */}
@@ -177,65 +201,37 @@ export default function Navbar() {
             >
               <motion.a
                 href={link.href}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 font-semibold group relative overflow-hidden"
-                whileHover={{ y: -2 }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-800 transition-all duration-200 font-medium group"
+                whileHover={{ y: -1 }}
               >
-                <link.icon className="w-4 h-4 transition-transform group-hover:scale-110" />
+                <link.icon className="w-4 h-4" />
                 {link.name}
                 {link.submenu && (
                   <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
                 )}
-                <motion.div 
-                  className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-600 to-purple-600"
-                  initial={{ scaleX: 0 }}
-                  whileHover={{ scaleX: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
               </motion.a>
 
-              {/* Premium Dropdown Menu */}
+              {/* Enhanced Dropdown Menu */}
               <AnimatePresence>
                 {link.submenu && openDropdown === link.name && (
                   <motion.div
-                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                    className="absolute top-full left-0 mt-3 w-80 bg-white/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gray-100 overflow-hidden z-50"
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
                   >
-                    <div className="p-3">
+                    <div className="p-2">
                       {link.submenu.map((item) => (
                         <motion.a
                           key={item.name}
                           href={item.href}
-                          className="flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300 group relative"
-                          whileHover={{ x: 8 }}
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 transition-all duration-200 group"
+                          whileHover={{ x: 4 }}
                         >
-                          <div className={`p-2 rounded-lg ${
-                            item.emergency 
-                              ? 'bg-red-100 text-red-600' 
-                              : item.premium 
-                                ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white'
-                                : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            <item.icon className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1">
-                            <span className={`font-semibold ${
-                              item.emergency ? 'text-red-600' : 'text-gray-800'
-                            }`}>
-                              {item.name}
-                            </span>
-                          </div>
-                          {item.premium && (
-                            <span className="px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs rounded-full font-bold">
-                              PREMIUM
-                            </span>
-                          )}
-                          {item.emergency && (
-                            <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full font-bold animate-pulse">
-                              URGENT
-                            </span>
-                          )}
+                          <item.icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          <span className="text-gray-700 dark:text-gray-300 font-medium">
+                            {item.name}
+                          </span>
                         </motion.a>
                       ))}
                     </div>
@@ -247,21 +243,71 @@ export default function Navbar() {
         </nav>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-4">
-          {/* Premium Notifications */}
+        <div className="flex items-center gap-3">
+          {/* Search Button */}
+          <motion.button
+            ref={searchRef}
+            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setSearchOpen(!searchOpen)}
+          >
+            <Search className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </motion.button>
+
+          {/* Search Panel */}
+          <AnimatePresence>
+            {searchOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute top-full right-0 mt-2 w-96 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700 p-4 z-50"
+              >
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search doctors, services, medications..."
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-white"
+                    autoFocus
+                  />
+                </div>
+                <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                  Quick search: Doctors, Appointments, Pharmacy
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Dark Mode Toggle */}
+          <motion.button
+            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setDarkMode(!darkMode)}
+          >
+            {darkMode ? (
+              <Sun className="w-5 h-5 text-yellow-500" />
+            ) : (
+              <Moon className="w-5 h-5 text-gray-600" />
+            )}
+          </motion.button>
+
+          {/* Notifications */}
           <div ref={notificationsRef} className="relative">
             <motion.button
-              className="relative p-3 rounded-2xl hover:bg-blue-50 transition-colors group"
+              className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setNotificationsOpen(!notificationsOpen)}
             >
-              <Bell className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+              <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               {unreadCount > 0 && (
                 <motion.span 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg"
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium"
                 >
                   {unreadCount}
                 </motion.span>
@@ -271,17 +317,22 @@ export default function Navbar() {
             <AnimatePresence>
               {notificationsOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                  className="absolute right-0 mt-3 w-96 bg-white/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gray-100 overflow-hidden z-50"
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
                 >
-                  <div className="p-6 border-b border-gray-100">
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-gray-900 text-lg">Notifications</h3>
-                      <span className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm rounded-full font-semibold">
-                        {unreadCount} New
-                      </span>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={clearAllNotifications}
+                          className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          Clear all
+                        </button>
+                      )}
                     </div>
                   </div>
                   
@@ -290,41 +341,38 @@ export default function Navbar() {
                       notifications.map((notification) => (
                         <motion.div
                           key={notification.id}
-                          className={`p-4 border-b border-gray-50 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300 ${
-                            !notification.read ? 'bg-blue-50/50' : ''
+                          className={`p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors ${
+                            !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                           }`}
-                          whileHover={{ x: 4 }}
+                          whileHover={{ backgroundColor: "rgba(59, 130, 246, 0.05)" }}
                         >
-                          <div className="flex justify-between items-start gap-4">
+                          <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <p className="text-sm font-semibold text-gray-900 mb-1">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
                                 {notification.message}
                               </p>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 {notification.time}
                               </p>
                             </div>
                             {!notification.read && (
                               <button
                                 onClick={() => markAsRead(notification.id)}
-                                className="px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+                                className="ml-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
                               >
-                                Mark Read
+                                Mark read
                               </button>
                             )}
                           </div>
-                          {notification.type === 'premium' && (
-                            <span className="inline-block mt-2 px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs rounded font-bold">
-                              PREMIUM SERVICE
-                            </span>
-                          )}
+                          <button className="mt-2 text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition-colors">
+                            {notification.action}
+                          </button>
                         </motion.div>
                       ))
                     ) : (
-                      <div className="p-8 text-center text-gray-500">
-                        <Bell className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                        <p className="font-semibold">No notifications</p>
-                        <p className="text-sm mt-1">You're all caught up!</p>
+                      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                        <Bell className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p>No notifications</p>
                       </div>
                     )}
                   </div>
@@ -333,93 +381,75 @@ export default function Navbar() {
             </AnimatePresence>
           </div>
 
-          {/* Premium User Profile */}
+          {/* User Profile */}
           <div ref={profileRef} className="relative">
             <motion.button
-              className="flex items-center gap-3 p-2 rounded-2xl hover:bg-blue-50 transition-colors group"
+              className="flex items-center gap-2 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setProfileOpen(!profileOpen)}
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <User className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
               </div>
-              <div className="hidden xl:block text-left">
-                <p className="font-semibold text-gray-900 text-sm">Welcome Back</p>
-                <p className="text-xs text-gray-500">Access your account</p>
-              </div>
-              <ChevronDown className="w-4 h-4 text-gray-500 transition-transform group-hover:rotate-180" />
             </motion.button>
 
             <AnimatePresence>
               {profileOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                  className="absolute right-0 mt-3 w-80 bg-white/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gray-100 overflow-hidden z-50"
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
                 >
                   {user ? (
                     <>
-                      <div className="p-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                            <User className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-lg">Dr. Sarah Johnson</p>
-                            <p className="text-blue-100 text-sm">Premium Member</p>
-                          </div>
-                        </div>
-                        <div className="mt-3 px-3 py-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                          <p className="text-sm font-semibold">MediCare+ Platinum</p>
-                        </div>
+                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                        <p className="font-semibold text-gray-900 dark:text-white">John Doe</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">john@example.com</p>
                       </div>
-                      <div className="p-3">
+                      <div className="p-2">
                         {[
-                          { name: "My Profile", icon: UserCircle },
+                          { name: "Profile", icon: UserCircle },
                           { name: "Appointments", icon: Calendar },
                           { name: "Medical Records", icon: Shield },
-                          { name: "Account Settings", icon: Settings },
+                          { name: "Settings", icon: Settings },
                         ].map((item) => (
                           <button
                             key={item.name}
-                            className="flex items-center gap-4 w-full px-4 py-4 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300 text-gray-700 font-semibold"
+                            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
                           >
-                            <item.icon className="w-5 h-5" />
+                            <item.icon className="w-4 h-4" />
                             {item.name}
                           </button>
                         ))}
-                        <div className="border-t border-gray-100 mt-2 pt-2">
-                          <button className="flex items-center gap-4 w-full px-4 py-4 rounded-xl hover:bg-red-50 transition-all duration-300 text-red-600 font-semibold">
-                            <LogOut className="w-5 h-5" />
+                        <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                          <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400">
+                            <LogOut className="w-4 h-4" />
                             Sign Out
                           </button>
                         </div>
                       </div>
                     </>
                   ) : (
-                    <div className="p-6">
-                      <div className="text-center mb-6">
-                        <h3 className="font-bold text-gray-900 text-lg mb-2">Join MediCare+</h3>
-                        <p className="text-gray-600 text-sm">Access premium healthcare services</p>
-                      </div>
-                      <div className="flex flex-col gap-3">
+                    <div className="p-4">
+                      <p className="text-gray-700 dark:text-gray-300 mb-4 text-center">Welcome to MediBook+</p>
+                      <div className="flex flex-col gap-2">
                         <motion.a
                           href="#login"
-                          className="px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 text-center"
+                          className="px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors text-center"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          Sign In
+                          Login
                         </motion.a>
                         <motion.a
                           href="#register"
-                          className="px-6 py-4 border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:border-blue-500 hover:text-blue-600 transition-all duration-300 text-center"
+                          className="px-4 py-3 border border-blue-600 text-blue-600 dark:text-blue-400 rounded-xl font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-center"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          Create Account
+                          Register
                         </motion.a>
                       </div>
                     </div>
@@ -431,21 +461,21 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <motion.button
-            className="lg:hidden p-3 rounded-2xl hover:bg-blue-50 transition-colors"
+            className="lg:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             {mobileOpen ? (
-              <X className="w-6 h-6 text-gray-600" />
+              <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
             ) : (
-              <Menu className="w-6 h-6 text-gray-600" />
+              <Menu className="w-6 h-6 text-gray-600 dark:text-gray-400" />
             )}
           </motion.button>
         </div>
       </div>
 
-      {/* Premium Mobile Menu */}
+      {/* Enhanced Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -454,7 +484,7 @@ export default function Navbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
               onClick={() => setMobileOpen(false)}
             />
             
@@ -464,38 +494,43 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 h-full w-full max-w-md bg-white/95 backdrop-blur-xl shadow-2xl z-50 lg:hidden overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 max-w-full bg-white dark:bg-gray-900 shadow-2xl z-50 lg:hidden overflow-y-auto"
             >
-              <div className="p-6 h-full flex flex-col">
+              <div className="p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                      <Stethoscope className="text-white w-5 h-5" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900">MediCare+</h2>
-                      <p className="text-xs text-gray-500">Premium Healthcare</p>
-                    </div>
+                    <Stethoscope className="text-blue-600 dark:text-blue-400 w-6 h-6" />
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">MediBook+</h2>
                   </div>
                   <button
                     onClick={() => setMobileOpen(false)}
-                    className="p-3 rounded-2xl hover:bg-gray-100 transition-colors"
+                    className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
-                    <X className="w-5 h-5 text-gray-600" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
+                {/* Mobile Search */}
+                <div className="relative mb-6">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                  />
+                </div>
+
                 {/* Mobile Navigation */}
-                <nav className="flex-1 space-y-2">
+                <nav className="space-y-2">
                   {navLinks.map((link) => (
                     <div key={link.name} className="relative">
                       <button
-                        onClick={() => setOpenDropdown(openDropdown === link.name ? null : link.name)}
-                        className="flex items-center justify-between w-full px-4 py-4 rounded-2xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300 text-gray-700 font-semibold"
+                        onClick={() => handleDropdownToggle(link.name)}
+                        className="flex items-center justify-between w-full px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300 font-medium"
                       >
                         <div className="flex items-center gap-3">
-                          <link.icon className="w-5 h-5" />
+                          <link.icon className="w-4 h-4" />
                           {link.name}
                         </div>
                         {link.submenu && (
@@ -516,29 +551,16 @@ export default function Navbar() {
                             exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden"
                           >
-                            <div className="ml-8 pl-4 border-l-2 border-gray-200 space-y-2 my-3">
+                            <div className="ml-8 pl-4 border-l-2 border-gray-200 dark:border-gray-700 space-y-1 my-2">
                               {link.submenu.map((item) => (
                                 <a
                                   key={item.name}
                                   href={item.href}
-                                  className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-all duration-300 text-gray-600"
+                                  className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
                                   onClick={() => setMobileOpen(false)}
                                 >
-                                  <div className={`p-2 rounded-lg ${
-                                    item.emergency 
-                                      ? 'bg-red-100 text-red-600' 
-                                      : item.premium 
-                                        ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white'
-                                        : 'bg-gray-100 text-gray-600'
-                                  }`}>
-                                    <item.icon className="w-4 h-4" />
-                                  </div>
+                                  <item.icon className="w-4 h-4" />
                                   {item.name}
-                                  {item.premium && (
-                                    <span className="ml-auto px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs rounded-full font-bold">
-                                      PREMIUM
-                                    </span>
-                                  )}
                                 </a>
                               ))}
                             </div>
@@ -549,32 +571,38 @@ export default function Navbar() {
                   ))}
                 </nav>
 
-                {/* Mobile Auth Section */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  {!user ? (
-                    <div className="flex flex-col gap-3">
-                      <motion.a
+                {/* Mobile Actions */}
+                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Dark Mode</span>
+                    <button
+                      onClick={() => setDarkMode(!darkMode)}
+                      className="relative w-12 h-6 bg-gray-300 dark:bg-gray-600 rounded-full transition-colors"
+                    >
+                      <motion.div
+                        className="w-5 h-5 bg-white rounded-full shadow-lg absolute top-0.5"
+                        animate={{ left: darkMode ? "1.5rem" : "0.125rem" }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      />
+                    </button>
+                  </div>
+                  
+                  {!user && (
+                    <div className="flex gap-3">
+                      <a
                         href="#login"
-                        className="px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-center hover:shadow-lg transition-all duration-300"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        className="flex-1 text-center px-4 py-3 border border-blue-600 text-blue-600 dark:text-blue-400 rounded-xl font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                         onClick={() => setMobileOpen(false)}
                       >
-                        Sign In
-                      </motion.a>
-                      <motion.a
+                        Login
+                      </a>
+                      <a
                         href="#register"
-                        className="px-6 py-4 border-2 border-gray-200 text-gray-700 rounded-xl font-bold text-center hover:border-blue-500 hover:text-blue-600 transition-all duration-300"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        className="flex-1 text-center px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
                         onClick={() => setMobileOpen(false)}
                       >
-                        Create Account
-                      </motion.a>
-                    </div>
-                  ) : (
-                    <div className="text-center text-gray-500 text-sm">
-                      Premium Member • MediCare+
+                        Register
+                      </a>
                     </div>
                   )}
                 </div>
