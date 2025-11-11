@@ -17,7 +17,7 @@ import {
   TrendingUp
 } from "lucide-react";
 
-export default function HeroSection() {
+export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
