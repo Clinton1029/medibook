@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { MessageCircle } from "lucide-react";
+
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { 
   Heart, 
