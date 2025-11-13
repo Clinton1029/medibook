@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-
+import React, { useState, useEffect, useRef } from "react"; // ADDED React import
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { 
   Heart, 
@@ -461,7 +460,11 @@ export default function ModernServices() {
                   <div>
                     <div className="flex items-center gap-4 mb-6">
                       <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center">
-                        {React.createElement(advancedFeatures[activeFeatureTab].icon, { className: "w-8 h-8 text-white" })}
+                        {/* FIXED: Replaced React.createElement with JSX */}
+                        {(() => {
+                          const IconComponent = advancedFeatures[activeFeatureTab].icon;
+                          return <IconComponent className="w-8 h-8 text-white" />;
+                        })()}
                       </div>
                       <div>
                         <h3 className="text-3xl font-bold text-gray-900">{advancedFeatures[activeFeatureTab].title}</h3>
@@ -563,7 +566,11 @@ export default function ModernServices() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
                       <div className={`w-16 h-16 bg-gradient-to-r ${premiumServices[activeService].color} rounded-2xl flex items-center justify-center`}>
-                        {React.createElement(premiumServices[activeService].icon, { className: "w-8 h-8 text-white" })}
+                        {/* FIXED: Replaced React.createElement with JSX */}
+                        {(() => {
+                          const IconComponent = premiumServices[activeService].icon;
+                          return <IconComponent className="w-8 h-8 text-white" />;
+                        })()}
                       </div>
                       <div>
                         <h3 className="text-3xl font-bold text-gray-900">{premiumServices[activeService].title}</h3>
