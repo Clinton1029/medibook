@@ -5,7 +5,6 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { 
   Heart, 
-  
   Brain, 
   Bone, 
   Eye, 
@@ -33,7 +32,7 @@ import {
   Smartphone,
   Cloud,
   Lock,
-  MessageCircle
+  MessageCircle 
 } from 'lucide-react';
 
 export default function ModernServices() {
