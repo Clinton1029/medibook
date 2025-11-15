@@ -3,6 +3,7 @@
 import Hero from "./components/Hero";
 import Services from "./components/Services";
 import SpecialistsPage from "./components/SpecialistsPage"
+import AboutPage from "./components/AboutPage";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
       <Hero />
       <Services />
       <SpecialistsPage />
+      <AboutPage />
 
       
     </main>
