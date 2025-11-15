@@ -456,7 +456,7 @@ export default function SupportPage() {
                           <div className="text-blue-200 text-sm">Satisfaction Rate</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-bold">< 2min</div>
+                          <div className="text-2xl font-bold">2min</div>
                           <div className="text-blue-200 text-sm">Avg. Response</div>
                         </div>
                         <div>
