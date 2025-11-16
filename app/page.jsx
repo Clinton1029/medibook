@@ -5,7 +5,6 @@ import Services from "./components/Services";
 import SpecialistsPage from "./components/SpecialistsPage"
 import AboutPage from "./components/AboutPage";
 import SupportPage from "./components/SupportPage";
-import Dashboard from "./components/Dashboard";
 
 export default function Home() {
   return (
@@ -15,7 +14,6 @@ export default function Home() {
       <SpecialistsPage />
       <AboutPage />
       <SupportPage />
-      <Dashboard />
     </main>
   );
 }
